@@ -1,0 +1,159 @@
+12/15/22 - 0.3.1 update
+-Options: now use a dictionary for universal usage and simple feature addition; originally a bunch of hard-coded lists that had deserved the upgrade.
+-optimization.py was fully removed due to a memory leak it created. By making a new sprite class for display, it was making a new class *every frame*, lagging the game. 
+-Content: added enemies: fihs, stickman, spike
+-Bullets: Nerfed YUP to only shoot 2 bullets at once; removed bees
+-Audio: songs are no longer preloaded, and are loaded as an on-needed basis; this saves RAM, as most audio files are mp3 now; all songs are newer, smaller-sized remakes.
+-LARGE: put all states and most modules into one file, making main.py over 1200 lines.
+-LARGE: Sounds are now one class entity. This makes it so sounds are still only loaded once.
+-optimized the formation attack() function to include less loops, as the previous method was very buggy
+
+
+
+10/18/22 - 0.3.0 update
+(sorry for the long hiatus I forgot about this file)
+-characters are now in space-invaders-like formations
+-backgrounds are pre-loaded
+-audio is pre-loaded
+-enemies shoot bullets and are completely re-written
+-enemy files are modular
+-world files are modular, and load everything modularly
+-game now takes 1/6 of the RAM it initially used
+-formations now move at a set speed and will move up and down in a sine wave
+
+6/3/22 - item update
+-You no longer have all the tools at the start of the game
+-You need to earn them mid-level
+-They are programmed in the level code
+
+6/2/22 - large update
+-Fixed loading duplicate items (not 100% but mostly)
+-Added healthbar at top
+-Added level select
+-Removed foreground and extra assets due to optimization problems
+-characters will now pop upon death
+
+4/13/22 - Small update
+-Hurt invincibility
+-Slight animation fix
+-Slight optimization
+-Planet glitch fix
+   -(basically planets could get stuck in place or go backwards)
+-Fixed boss insta-death glitch
+
+4/8/22 - FINALLY
+-I fixed that damnned shooting bug.
+-The default bullet no longer shoots twice.
+
+4/1/22 - small update
+-Bugfixes
+-Optimization
+-"plug-and-play" for developer assets (only important for me)
+
+3/30/22 - large update
+-Pause menu
+-GameOver screen
+    -Menu goes with BPM
+
+3/28/22 - OPTIONSTATE FIXED
+-There was a bug within optionstate that caused the game to repeatedly refresh
+-This was caused by a line of code that applied the settings *every frame*
+-I had to do a lot of work to figure out a way to fix this issue, but I eventually figured out a way
+-The "way" in question was saving the original settings and only applying them if the original settings were different from the current ones
+
+3/11/22 - LEVELCOMPLETESTATE CREATED
+-When a level finishes, there is now a state that can be initialized that allows the game to show your total score, your health, and your next level.
+-This means the game is now roughly playable if the levels are able to code in the ability to tell the game a level has ended
+-On top of that, I also believe that the levels may be able to be more optimized.
+-Perhaps the game may be able to read leveldata from a text file instead of having a plethora of inputs?
+-That would make things much easier...
+
+3/8/22 - OPTIMIZED CHARACTER SPAWNING
+-There is now one universal function for spawning enemies
+-This stops you from having to repeatedly look for character spawn conditions, excluding specialized code
+-This also lines up SCORE for the chopping block
+
+3/1/22 - LOADING SCREEN UPDATED
+-Having a full image take up the screen when loading is a bit disorienting at times, and I have chosen to only use that upon startup.
+-Due to this, I have replaced the state change code to simply have a little icon appear in the bottom right corner when loading.
+2/28/22 - LOADING SCREEN ADDED
+-When the game is booting up, a loading screen is now added in order to fix issues relating to the screen being unresponsive.
+
+2/25/22 - MISSILE TRACKING IMPROVEMENT
+-Made it so the tracking bullets have a higher chance of hitting their target. It is now more than likely to hit. 
+
+2/24/22 - BULLET PREVIEW (BEGINNING OF UI)
+-YUP is now able to select what bullet he wants to shoot, from selecting items within his inventory list.
+    -Items can be added
+    -Items can be removed
+-Not just that, but the current selected bullet is now previewed in the top left corner of the stage.
+-This is the beginning of UI implementation
+
+2/22/22 - ERROR SCREEN
+-There are now error screens that appear if an exception occurs.
+-There are two types: A Geneal Exception, and a Fatal Exception.
+    -A general exception has a little graphic, along with some writing and the actual error at hand.
+    -A Fatal Exception blacks out the screen and fully crashes the game.
+-Either way, they display an error without fully crashing the game.
+
+2/8/22 - SOUNDS IN PROGRESS
+-The sounds within the game are too normal
+-I am currently bitcrushing them in order to make it seem more old
+-FIXED SOUNDS: all bap noises, ouch, death, boss hurt, enemy death
+-IN PROGRESS: bees, woosh
+
+2/4/44 - NEW ENEMIES ADDED
+-BIGBOSS goes through four separate phases, all of which go with the new Character Engine
+-NYOOM uses the old character engine, since it uses Spike's code. He waits to be near the center of the screen, before quadrupling his speed, playing a noise as he does so.
+
+1/31/22 - OPTIMIZATION DILEMMA
+I have currently left the game to load every single sprite as soon as the game begins, typically just so they would all load in an organized manner.
+However, despite this, I believe this may bog the game down as time goes on.
+This leaves one choice. Do I let the enemies only load the images when they're spawned, or do I make them all preload, as I have been doing?
+
+1/27/22 - BULLET RECOGNITION
+-Enemy bullet recognition has changes
+-It no longer detects bullet type for deleting bullets, and it only deletes the bullet itself if "piercing" is set to false.
+-There will also be a piercing "health" at some point.
+
+1/25/22 -BuLLETS AND LASER ISSUE FIXED
+-Extra bullets have been added!
+	-The Quad Shot shoots in all four directions
+		-Pulls code from the Spike
+	-The Laser rips through opponents and never deletes
+	-The Missile targets a random enemy and lunges towards it
+		-Pulls code from the pirahna
+	-The BEES spazz out across the screen!
+		-Long lasting
+		-Annoying to enemies
+		-More likely to kill spikes early
+		-Anihilates NOPEs
+
+1/19/22 - MERGING ENEMY CLASSES
+-Instead of making an enemy class for each and every enemy that is created, there will be a universal enemy sprite that will do damage. 
+-These will be called "HurtSprites" and that is exactly what they will do. 
+-I plan to do the same with bulletsprites, however they are already called bulletsprites so there is no point of changing them.
+
+1/18/22 - LEVEL PROGRAMMING BEGINS
+- Added the ability for playstate to read from a file
+- Needs more work
+	- Auto-reading for any level to be added without help
+
+1/14/22 - BACKGROUND SCROLL AUTOMATION
+-The game is now able to detect the overall size of an image and automatically tell when to begin stacking images and when not to. 
+
+1/13/22 - BACKGROUND SCROlL LAG ISSUE FIXED
+-Backgrounds now "stack" on top of one-another
+-If the image being used will now be displayed twice, both at different coordinates, in order to stop the game from having a missing blank spot as a background
+-The top left corner of the screen is a y-coordinate of 0, and the higher up you go, the lower the image appears on the screen
+	-Knowing this, if an image hits 0 while scrolling, it begins to disappear off stage
+-Because of this, any background that hits 0 will be passed off to a sub-method, and a new background gets passed to the main method.
+-The pattern continues
+
+1/10/22 - UPDATE
+-Converted background registering to its own file
+-Put YUP inside of the characters file for the sake of saving space
+-Song volume fixed
+
+1/4/22 - 0.1.0
+-Yay

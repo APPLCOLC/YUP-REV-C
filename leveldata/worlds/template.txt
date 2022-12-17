@@ -1,0 +1,6 @@
+{
+"filename":
+"songname":
+"uitype":'default'
+"bg":'default'
+}
