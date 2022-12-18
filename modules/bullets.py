@@ -3,23 +3,22 @@ import pygame,random
 #from main import *
 
 #IMAGE LOADING
-class b():
-    default = pygame.image.load("./assets/images/bullets/bullet.png")
-    track = pygame.image.load("./assets/images/bullets/trackbullet.png")
-    quadLeft = pygame.image.load("./assets/images/bullets/quadLeft.png")
-    quadRight = pygame.image.load("./assets/images/bullets/quadRight.png")
-    quadUp = pygame.image.load("./assets/images/bullets/quadUp.png")
-    quadDown = pygame.image.load("./assets/images/bullets/quadDown.png")
+class bullet_images():
+    default = pygame.image.load("./assets/images/bullets/bullet.png").convert_alpha()
+    track = pygame.image.load("./assets/images/bullets/trackbullet.png").convert_alpha()
+    quadLeft = pygame.image.load("./assets/images/bullets/quadLeft.png").convert_alpha()
+    quadRight = pygame.image.load("./assets/images/bullets/quadRight.png").convert_alpha()
+    quadUp = pygame.image.load("./assets/images/bullets/quadUp.png").convert_alpha()
+    quadDown = pygame.image.load("./assets/images/bullets/quadDown.png").convert_alpha()
     quad = [quadLeft, quadRight, quadUp, quadDown];del quadLeft, quadRight, quadUp, quadDown
-    quadFull = pygame.image.load("./assets/images/bullets/quadFull.png")
-    laser = pygame.image.load("./assets/images/bullets/laser.png")
-    bee = pygame.image.load("./assets/images/bullets/BEE.png")
-    benson = pygame.image.load("./assets/images/bullets/BENSON.jpg")
+    quadFull = pygame.image.load("./assets/images/bullets/quadFull.png").convert_alpha()
+    laser = pygame.image.load("./assets/images/bullets/laser.png").convert_alpha()
+b=bullet_images()
 
 #The default bullet simply travels to the other side of the stage and then gets deleted.
 #It also deletes itself if it touches a bullet.
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self,arg1,arg2,sounds):
+    def __init__(self,arg1,arg2,sounds,b=b):
         # shoot_bap[random.randint(0,3)].play()
         sounds.shoot_realistic.play()
         pygame.sprite.Sprite.__init__(self)
@@ -41,7 +40,7 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 class Missile(pygame.sprite.Sprite):
-    def __init__(self,arg1,arg2,sounds,enemyClass = None):
+    def __init__(self,arg1,arg2,sounds,enemyClass = None,b=b):
         self.sounds=sounds #EXPERIMENTAL RAM TEST
         sounds.shoot_missile.play()
 
@@ -116,7 +115,7 @@ class Missile(pygame.sprite.Sprite):
         if not self.hasFlipped:self.image = pygame.transform.flip(self.image,False,True);self.hasFlipped = True
 
 class Quad(pygame.sprite.Sprite):
-    def __init__(self, direction, spawnx, spawny):
+    def __init__(self, direction, spawnx, spawny, b=b):
         pygame.sprite.Sprite.__init__(self)
         self.direction = direction
         self.health = 1
@@ -142,7 +141,7 @@ class Quad(pygame.sprite.Sprite):
             self.kill()
 
 class Laser(pygame.sprite.Sprite):
-    def __init__(self,arg1,arg2):
+    def __init__(self,arg1,arg2,b=b):
         # shoot_laser.play()
         pygame.sprite.Sprite.__init__(self)
         self.health = 15
@@ -163,7 +162,7 @@ class Laser(pygame.sprite.Sprite):
             self.kill()
 
 class Large(pygame.sprite.Sprite):
-    def __init__(self,arg1,arg2):
+    def __init__(self,arg1,arg2,b=b):
         # shoot_bap[random.randint(0,3)].play()
         # shoot_realistic.play()
         pygame.sprite.Sprite.__init__(self)
@@ -228,26 +227,20 @@ def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullett
     #         bulletsprites.add(bullet)
         
 
-def display_bullet(WIN,positionTuple,bullettype):
+def display_bullet(WIN,positionTuple,bullettype,b=b):
     if bullettype == "default":
-        image = pygame.image.load("./assets/images/bullets/bullet.png")
-        image = pygame.transform.scale(image, (18, 18))
+        image = pygame.transform.scale(b.default, (18, 18))
     elif bullettype == "large":
-        image = pygame.image.load("./assets/images/bullets/bullet.png")
-        image = pygame.transform.scale(image, (25, 25))
+        image = pygame.transform.scale(b.default, (25, 25))
         positionTuple = (positionTuple[0]-4,positionTuple[1]-4)
     elif bullettype == "missile":
-        image = pygame.image.load("./assets/images/bullets/trackbullet.png")
-        image = pygame.transform.scale(image, (18, 18))
+        image = pygame.transform.scale(b.track, (18, 18))
     elif bullettype == "quad":
-        image = pygame.image.load("./assets/images/bullets/quadFull.png")
-        image = pygame.transform.scale(image, (18, 18))
+        image = pygame.transform.scale(b.quadFull, (18, 18))
     elif bullettype == "laser":
-        image = pygame.image.load("./assets/images/bullets/laser.png")
-        image = pygame.transform.scale(image, (18, 18))
+        image = pygame.transform.scale(b.laser, (18, 18))
     else:
-        image = pygame.image.load("./assets/images/bullets/bullet.png")
-        pygame.transform.scale(image, (18, 18))
+        pygame.transform.scale(b.default, (18, 18))
     WIN.blit(image,positionTuple)
 
 

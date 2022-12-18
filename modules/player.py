@@ -101,14 +101,14 @@ class Player(pygame.sprite.Sprite):
         #inventory elements
         self.invenIndex = 0
         # self.inventory = ["default"]
-        self.inventory = ["default","large","missile","bees","quad","laser"]
+        self.inventory = ["default","large","missile","quad","laser"]
         self.currentweapon = self.inventory[self.invenIndex]
 
     def update(self):
         if not self.playerdied:
             self.stateManager()
             self.collision()
-            self.autoshoot()
+            if self.shoot_auto:self.autoshoot()
         self.animation()
 
     def stateManager(self):
@@ -165,6 +165,7 @@ class Player(pygame.sprite.Sprite):
         else:self.image.set_alpha(255)
 
     def controls(self, event):
+
         #######YUP'S CONTROLS#######
         # Checks for all of the keys being pressed down on the keyboard.
         if event.type == pygame.KEYDOWN:
@@ -291,7 +292,7 @@ class Player(pygame.sprite.Sprite):
         # shoot((self.rect.x + 20), (self.rect.y + 20), self.allsprites, self.bulletsprites, self.HurtSprites, "large")
         # shoot((self.rect.x + 20), (self.rect.y + 20), self.allsprites, self.bulletsprites, self.HurtSprites, "quad")
         # shoot((self.rect.x + 20), (self.rect.y + 20), self.allsprites, self.bulletsprites, self.HurtSprites, "laser")
-        if self.shoot_auto: shoot(self.rect.center[0], self.rect.center[1], self.allsprites, self.bulletsprites, self.HurtSprites, self.sounds, self.inventory[self.invenIndex])
+        shoot(self.rect.center[0], self.rect.center[1], self.allsprites, self.bulletsprites, self.HurtSprites, self.sounds, self.inventory[self.invenIndex])
 
     # This is the code loaded as a temporary save whenever you exit states.
     # This takes your inventory, your health, your coodinates, etc.

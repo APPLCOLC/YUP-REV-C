@@ -1,8 +1,14 @@
+# removed player spawn
+# removed player addition to allsprites and playersprites
+# removed player from debugspawn
+# removed player controls from events
+# removed player UI health
+
+
+
 "START###############################################################"
 """IMPORTS--------------------"""
 import pygame,math,time,random
-from modules.bullets import display_bullet
-
 """DISPLAY INITIALIZATION--------------------"""
 pygame.display.set_caption("YUP")
 icon = pygame.Surface((50,50))
@@ -22,12 +28,11 @@ playersprite = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 from modules import player as playerguy
-
-
+from modules.bullets import display_bullet
 
 
 """IMAGES##############################################################"""
-class UI():
+class UI_images():
     #BEGIN AND END
     beginImage = pygame.image.load("./assets/images/UI/BEGIN AND END/GET READY.png")
     endImage = pygame.image.load("./assets/images/UI/BEGIN AND END/LEVEL COMPLETE.png")
@@ -120,7 +125,7 @@ class UI():
 
     #CURSOR
     cursor = pygame.image.load("./assets/images/UI/LIVES/000.png")
-ui=UI
+ui=UI_images
 
 
 
@@ -160,7 +165,7 @@ class Sounds():
 
         self.continueEnd = pygame.mixer.Sound('./assets/ost/continueEnd.wav');self.soundList.append(self.continueEnd)
         ##############################################
-        #OFFSETS {index:offset}
+        
         self.offsetSounds = {self.shoot_laser:0.5,self.shoot_realistic:0.25}
 
     ###############FUNCTIONS###############-
@@ -208,8 +213,7 @@ class Sounds():
             with open('./assets/settings.txt','r') as data:volume=eval(data.read())['OST VOL'][0]
             pygame.mixer.music.set_volume(volume)
             # except:print("adjust_ost error")
-        
-            
+      
     def apply_offsets(self):
         for k,v in self.offsetSounds.items():
             soundvol=self.soundList[self.soundList.index(k)].get_volume()*v
@@ -249,7 +253,7 @@ def readapply(settings=None, nonmain_song=None):
     return settings
 
 """DEBUG TEXT--------------------"""
-def debug_displays(allsprites,sprite_class_dict,player,variables,time,FPS,WIN=None):
+def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-PLAYREMOVE
     baseText=["-DEBUG-"]
     baseText.append("FPS:"+str(round(FPS,1)))
     baseText.append("TIME:"+str(round(time,1)))
@@ -258,10 +262,6 @@ def debug_displays(allsprites,sprite_class_dict,player,variables,time,FPS,WIN=No
     baseText.append("ALLSPRITES:"+str(len(allsprites)))
     for key,value in sprite_class_dict.items():
         baseText.append(""+str(key)+":"+str(len(value)))
-    baseText.append("SCORE:"+str(player.score))
-    baseText.append("HEALTH:"+str(player.lives))
-    baseText.append("ANIMSTATE:"+str(player.animState))
-    baseText.append("COORDINATES:-"+str(player.rect.center[0])+","+str(player.rect.center[1])+"-")
     font=pygame.font.Font("./assets/font/Setfont-Regular.ttf",20)
     if WIN==None:print(baseText)
     else:
@@ -278,12 +278,11 @@ def reset_progress():
         data.write(str(tempsave))
 
 """LOADING--------------------"""
-def LongLoad(WIN=WIN):
-    WIN.blit(UI.loadbg,(0,0))
+def LongLoad(WIN=WIN,ui=ui):
+    WIN.blit(ui.loadbg,(0,0))
     pygame.display.update()
-def shortLoad(WIN=WIN):
-    import random
-    WIN.blit(UI.loading,(0,0) )
+def shortLoad(WIN=WIN,ui=ui):
+    WIN.blit(ui.loading,(0,0) )
     pygame.display.update()
 
 """SCORE DISPLAY--------------------"""
@@ -665,7 +664,7 @@ class Level():
         
 """STATES###############################################################"""
 """TITLE ASSETS--------------------"""
-def title(WIN=WIN,sounds=sounds):
+def title(WIN=WIN,sounds=sounds,ui=ui):
     # try:
     #IMAGE LOADING, FIRST AND FOREMOST
     #these are not preloaded because they are only needed like once
@@ -685,18 +684,18 @@ def title(WIN=WIN,sounds=sounds):
 
     #REDRAW_WINDOW IS ONLY FOR GRAPHICS. NO SOUND EFFECTS OR SPRITES.
     #redraw_window will show and hide sprites depending on what menu you're in and what index you have selected
-    def redraw_window(index,frame):
+    def redraw_window(index,frame,ui):
         #The main thing that plays in the title screen. The bg, the fizz effect, and the logo.
-        WIN.blit(UI.titlebg1, (0,0))
-        WIN.blit(UI.titlebglogo[frame], (0,0))
+        WIN.blit(ui.titlebg1, (0,0))
+        WIN.blit(ui.titlebglogo[frame], (0,0))
 
         #"START," "OPTIONS," and "QUIT" only appear during the first part of the title menu
-        if index == 1: WIN.blit(UI.START[1],(200,350))
-        else: WIN.blit(UI.START[0],(200,350))
-        if index == 2: WIN.blit(UI.OPTIONS[1],(200,450))
-        else: WIN.blit(UI.OPTIONS[0],(200,450))
-        if index == 3: WIN.blit(UI.QUIT[1],(200,550))
-        else: WIN.blit(UI.QUIT[0],(200,550))
+        if index == 1: WIN.blit(ui.START[1],(200,350))
+        else: WIN.blit(ui.START[0],(200,350))
+        if index == 2: WIN.blit(ui.OPTIONS[1],(200,450))
+        else: WIN.blit(ui.OPTIONS[0],(200,450))
+        if index == 3: WIN.blit(ui.QUIT[1],(200,550))
+        else: WIN.blit(ui.QUIT[0],(200,550))
 
         pygame.display.update() #TEST ENABLE
 
@@ -711,7 +710,7 @@ def title(WIN=WIN,sounds=sounds):
 
         #tells the clock to tick at the rate of FPS
         clock.tick(FPS)
-        # print(clock.get_fps()) #TEST ENABLE
+        print(clock.get_fps()) #TEST ENABLE
 
         #once it sets all of the current image forms, it will then redraw the window
         redraw_window(index,frame)
@@ -739,22 +738,18 @@ def title(WIN=WIN,sounds=sounds):
                         # If you pick quit, or something else by some chance, the game will quit.
                         else:sounds.select.play();time.sleep(0.5);run = False;exit()
 
-                #This code checks for an escape press.
-                #This will execute the same lock-out method that the enter key does.
+                #Escape press for quitting game
                 if event.key == pygame.K_ESCAPE:
                     sounds.back.play()
                     exit()
 
-                #Code that checks for the menu selection for the first part of the menu
+                #Item selection; changes index
                 if event.key == pygame.K_UP:
                     if index > 1: index -=1
                     sounds.scroll.play()
                 if event.key == pygame.K_DOWN:
                     if index < 3: index +=1
                     sounds.scroll.play()
-
-                if event.key == pygame.K_f:
-                    sounds.stop_song();return "level select"
 
             #Code that checks for a key to be released
             if event.type == pygame.KEYUP:
@@ -763,7 +758,7 @@ def title(WIN=WIN,sounds=sounds):
                     lockoutenter = False
 
 """OPTIONS ASSETS--------------------"""
-def options(WIN=WIN):
+def options(WIN=WIN,ui=ui):
     def render_text(text):
         font = pygame.font.Font("./assets/font/Setfont-Regular.ttf", 50)
         surface = pygame.transform.scale(font.render(str(text), True, "white"), (75, 40))
@@ -785,37 +780,40 @@ def options(WIN=WIN):
     run = True
     index = 0
 
-    def redraw_window(settings=settings, settings_keys_images=settings_keys_images, index=index):
+    def redraw_window(settings=settings, settings_keys_images=settings_keys_images, index=index,ui=ui):
         # filling the bg and showing the title
-        WIN.blit(UI.optionbg, (0, 0))
+        WIN.blit(ui.optionbg, (0, 0))
         # displaying the setting names
         yval = 0
-        for key, value in settings_keys_images.items():
+        for value in settings_keys_images.values():
             WIN.blit(value, (50, (yval * 50) + 200))
             yval += 1
         # displaying the setting values
         yval = 0
-        for key, value in settings.items():
+        for value in settings.values():
             if value[1] == "onoff" and value[0]:
-                WIN.blit(UI.yes, (150, ((yval * 50) + 200)))
+                WIN.blit(ui.yes, (150, ((yval * 50) + 200)))
             elif value[1] == "onoff" and not value[0]:
-                WIN.blit(UI.no, (150, ((yval * 50) + 200)))
+                WIN.blit(ui.no, (150, ((yval * 50) + 200)))
             elif value[1] == "3060" and value[0]:
-                WIN.blit(UI.option_60, (150, ((yval * 50) + 200)))
+                WIN.blit(ui.option_60, (150, ((yval * 50) + 200)))
             elif value[1] == "3060" and not value[0]:
-                WIN.blit(UI.option_30, (150, ((yval * 50) + 200)))
+                WIN.blit(ui.option_30, (150, ((yval * 50) + 200)))
             elif value[1] == "slider":
-                WIN.blit(UI.slider, (150, ((yval * 50) + 200)))
-                WIN.blit(UI.knob, ((130 + (value[0] * 175)), ((yval * 50) + 200)))
+                WIN.blit(ui.slider, (150, ((yval * 50) + 200)))
+                WIN.blit(ui.knob, ((130 + (value[0] * 175)), ((yval * 50) + 200)))
             yval += 1
         # displaying the cursor
-        WIN.blit(UI.cursor, (0, ((index * 50) + 200)))
+        WIN.blit(ui.cursor, (0, ((index * 50) + 200)))
         # self-explanatory: updating the display
-        pygame.display.update()
+        pygame.display.update() #TEST ENABLE
     redraw_window()
 
+    clock=pygame.time.Clock()
+
     while run:
-        
+        clock.tick(9999999) #TEST ENABLE
+        print(clock.get_fps()) #TEST ENABLE
 
         # HARD-CODING PART FOR MUTE CODE. ERASE IF RE-USED.
         if settings["MUTE"][0]:
@@ -881,12 +879,13 @@ def options(WIN=WIN):
                     else:
                         sounds.denied.play()
 
+                if event.key == pygame.K_p:
+                    readapply(settings, curSong)
                 #only redraws the window when a setting is changed. No FPS needed.    
-                redraw_window(index=index)
-                readapply(settings, curSong)            
+                redraw_window(index=index)          
 
 """PAUSE ASSETS--------------------"""
-def pause(WIN=WIN, img=None): #it takes in the UI images as an argument to lower RAM usage and prevent leakage :)
+def pause(WIN=WIN, img=None, ui=ui): #it takes in the UI images as an argument to lower RAM usage and prevent leakage :)
     """-----PLEASE NOTE !-----
     pausestate is required to work like a unique MAIN function, seeing that it is a state within a state
     (By "state within a state", I mean that playstate runs pausestate, so pausestate is completely isolated from everything else)
@@ -904,18 +903,18 @@ def pause(WIN=WIN, img=None): #it takes in the UI images as an argument to lower
     sounds.select2.play()
 
     #updates every graphic onscreen
-    def dispUpdate(graphicFrame,index,img):
+    def dispUpdate(graphicFrame,index,img,ui=ui):
         if img==None:WIN.fill("black")
         else:WIN.blit(img,(0,0))
 
-        WIN.blit(UI.pause[graphicFrame],((300-(UI.pause[graphicFrame].get_width()/2)),100))
+        WIN.blit(ui.pause[graphicFrame],((300-(ui.pause[graphicFrame].get_width()/2)),100))
 
-        if index == 1: WIN.blit(UI.CONTINUE[1],((300-(UI.CONTINUE[1].get_width()/2)),350))
-        else: WIN.blit(UI.CONTINUE[0],((300-(UI.CONTINUE[0].get_width()/2)),350))
-        if index == 2: WIN.blit(UI.OPTIONS[1],((300-(UI.OPTIONS[1].get_width()/2)),450))
-        else: WIN.blit(UI.OPTIONS[0],((300-(UI.OPTIONS[0].get_width()/2)),450))
-        if index == 3: WIN.blit(UI.QUIT[1],((300-(UI.QUIT[1].get_width()/2)),550))
-        else: WIN.blit(UI.QUIT[0],((300-(UI.QUIT[0].get_width()/2)),550))
+        if index == 1: WIN.blit(ui.CONTINUE[1],((300-(ui.CONTINUE[1].get_width()/2)),350))
+        else: WIN.blit(ui.CONTINUE[0],((300-(ui.CONTINUE[0].get_width()/2)),350))
+        if index == 2: WIN.blit(ui.OPTIONS[1],((300-(ui.OPTIONS[1].get_width()/2)),450))
+        else: WIN.blit(ui.OPTIONS[0],((300-(ui.OPTIONS[0].get_width()/2)),450))
+        if index == 3: WIN.blit(ui.QUIT[1],((300-(ui.QUIT[1].get_width()/2)),550))
+        else: WIN.blit(ui.QUIT[0],((300-(ui.QUIT[0].get_width()/2)),550))
         pygame.display.update()
 
     while run:
@@ -969,7 +968,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
     if settings == None:
         settings = readapply()
 
-    # CREATING THE PLAYER AND LEVEL INSTANCE DEPENDING ON TEMPSAVE VALUES
+    # CREATING THE PLAYER AND LEVEL INSTANCE DEPENDING ON TEMPSAVE VALUES -PLAYREMOVE
     player = playerguy.Player(enemies, bullets, allsprites, sounds)  # Defines the player
     allsprites.add(player)
     playersprite.add(player)
@@ -982,7 +981,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
             else:
                 level = readData["CurrentLevel"]
         elif not readData["NewGame?"]:
-            player.load_data(readData["PlayerInstance"])
+            player.load_data(readData["PlayerInstance"]) #-PLAYREMOVE
             level = readData["CurrentLevel"]
         else:
             level = 0
@@ -992,7 +991,9 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
         FPS=30
     else:
         optimLoop = 1
-        FPS = 60 #TEST ENABLE
+        FPS = 999999 #TEST ENABLE
+
+    graphical=True #this is for debug purposes, where if you turn it off, the display turns off but the framerate rises heavily
 
     def exit_playstate(player, level, state_list=[enemies, bullets, playersprite, allsprites]):
         with open("./assets/tempsave.txt", "w") as data:
@@ -1019,38 +1020,38 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
         global run
         run = False
 
-    def redraw_window():
-        bg.display_bg()
+    def redraw_window(graphical):
+        bg.display_bg() 
         allsprites.draw(WIN)
-        # UI
-        display_bullet(WIN, (0, 0), player.currentweapon)
-        player.display_health(WIN, (30, 0))
-        display_score(player.score, (600, 0), WIN)
+        # UI -PLAYREMOVE
+        display_bullet(WIN, (0, 0), player.currentweapon) #-PLAYREMOVE
+        player.display_health(WIN, (30, 0)) #-PLAYREMOVE
+        display_score(player.score, (600, 0), WIN) #-PLAYREMOVE
 
         # DEBUG 
         debug_displays(allsprites,
                        {"PLAYER": playersprite, "ENEMIES": enemies, "BULLETS": bullets},
-                       player,
                        {"PLAYSTATE": dir(), "PLAYER": dir(playerguy),
                         "FILEREADER": dir(Level), "PYGAME": dir(pygame)},
                        (time.time() - start_time),
                        clock.get_fps(),
                        WIN=None)
 
+        # playersprite.draw(WIN) #-PLAYREMOVE
 
         # FINISHING WITH AN UPDATE STATEMENT
-        pygame.display.update() #D;
+        if graphical:pygame.display.update() #TEST ENABLE
 
     def update_sprites():
         allsprites.update()
-        bg.update()
+        bg.update() 
 
     # VARIABLE DEFINITIONS WHEN THE CODE BEGINS.
     run = True  # Variable that tells the game to loop
     clock = pygame.time.Clock()  # The clock is essentially just a thing that tells the computer to update the screen after a set period of time.
     # LEVEL INITIALIZATION
-    levelclass = Level(WIN, allsprites, enemies, bullets, player)
-    bg = levelclass.bg
+    levelclass = Level(WIN, allsprites, enemies, bullets, player=player) #-PLAYREMOVE 
+    bg = levelclass.bg 
 
 
     # VIRTUAL BUTTON CODE
@@ -1059,13 +1060,17 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
     while run:
 
+
+        #TEST PURPOSES: DO NOT LEAVE ENABLED
+        player.autoshoot()
+
         clock.tick(FPS)
 
         for i in range(optimLoop): update_sprites()
-        if player.playerdied: exit_playstate(player, level);return "title"  # player game over state initialization
+        if player.playerdied: exit_playstate(player, level);return "title"  # player game over state initialization -PLAYREMOVE
         # graphical updates
-        redraw_window()
-        levelclass.update()
+        redraw_window(graphical)
+        levelclass.update() 
         # inputs
         for event in pygame.event.get():
 
@@ -1078,7 +1083,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
                 # pause code
                 if event.key == pygame.K_ESCAPE:
                     # freezes everything and opens PAUSESTATE
-                    player.reset_movement()
+                    player.reset_movement() #-PLAYREMOVE
                     pygame.mixer.music.pause()
                     timePaused =  pause(img=bg.dir[0])
                     # If an error occurs, or any exit code is brought up, it spits you back at the title
@@ -1087,78 +1092,23 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
                         return "title"  # Sends the character into "titlestate", removing every single bit of progress made.
                     pygame.mixer.music.unpause()
             # PLAYER CONTROLS
-            player.controls(event)
+            player.controls(event) #-PLAYREMOVE
             # DEBUG CODE
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_o:
-                    levelclass.form.attack()
-        
-"""ERROR ASSETS--------------------"""
-def error(WIN,arg):
-    if len(str(arg)) == 0:
-        exit()
-
-    sounds.error.play()
-
-    errorText = pygame.font.SysFont("Arial", 15)
-
-    #CREDIT TO SpoonMeiser on StackOverFlow.com
-    #Code modified by me
-    def renderTextCenteredAt(text, font, colour, x, y, screen, allowed_width):
-        # first, split the text into words
-        words = text.split()
-        lines = {}
-        while len(words) > 0:
-            line_words = []
-            while len(words) > 0:
-                line_words.append(words.pop(0))
-                fw, fh = font.size(' '.join(line_words + words[:1]))
-                if fw > allowed_width:
-                    break
-            line = ' '.join(line_words)
-            lines[len(lines)] = line
-        # y_offset = 0
-        # print(lines)
-        for key,value in lines.items():
-            fw, fh = font.size(value)
-            tx = x
-            ty = y + (key*50)
-            font_surface = font.render(value, True, colour)
-            screen.blit(font_surface, (tx, ty))
+                #swaps the graphical setting
+                if event.key==pygame.K_1:
+                    if graphical:graphical=False
+                    else:graphical=True
+            #     if event.key == pygame.K_o:
+            #         levelclass.form.attack()
 
 
-    run = True
-    FPS = 30
-    clock = pygame.time.Clock()
-
-
-    def redraw_window(bg,errortitle,WIN,arg=arg):
-        pygame.display.update()
-        WIN.blit(bg,(0,0))
-        WIN.blit(errortitle,(0,250))
-        renderTextCenteredAt(str(arg).upper(), errorText, "White", 0, 400, WIN, 600)
-
-
-
-
-
-    while run:
-
-        clock.tick(FPS)
-
-        redraw_window(UI.erorr,UI.errortitle,WIN)
-
-        for event in pygame.event.get():
-
-            if event.type == pygame.KEYDOWN:
-
-                if event.key == pygame.K_ESCAPE:
-                    run = False
-                    return "title"
-
-            if event.type == pygame.QUIT:
-                run = False
-
+exit_commands=["exit","quit","leave","abort","depart"]
+while True:
+    cmd=input("COMMAND:")
+    if cmd.lower() in exit_commands:break
+    exec(cmd)
+exit()
 
 
 
@@ -1187,10 +1137,6 @@ while True:
             continue
 
         else:exit()
-
-    elif type(next_state) == tuple:
-        if next_state[0].lower() == "err":
-            next_state = error(WIN, next_state[1])
 
     elif next_state == None:
         shortLoad(WIN)

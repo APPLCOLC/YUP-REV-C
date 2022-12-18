@@ -62,7 +62,6 @@ class Char(pygame.sprite.Sprite):
         self.direction = None
         self.y_momentum = 0
         self.x_momentum = 0
-        self.aim_x=0
 
         # PYGAME-SPECIFIC CODE
         pygame.sprite.Sprite.__init__(self)
@@ -144,7 +143,6 @@ class Char(pygame.sprite.Sprite):
         #Creating variables to make the jump fine
         if self.frame >= len(img.prep) - 2:
             self.frame=0
-            self.aim_x=self.player.rect.center[0]
             self.locked_in=True
             self.state="attack"
             #VISUAL EXPLOSION

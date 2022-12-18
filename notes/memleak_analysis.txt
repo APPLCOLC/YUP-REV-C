@@ -1,0 +1,4 @@
+-OPTIONS is clean, ran at 10000fps
+-TITLE is clean, ran at 50fps
+-PLAYSTATE is leaking, with very jumpy ram usage
+-PLAYSTATE-NOLEVEL is not clean. This gets rid of the jumping and just raises the RAM usage indefinitely. 
