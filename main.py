@@ -1,11 +1,3 @@
-# removed player spawn
-# removed player addition to allsprites and playersprites
-# removed player from debugspawn
-# removed player controls from events
-# removed player UI health
-
-
-
 "START###############################################################"
 """IMPORTS--------------------"""
 import pygame,math,time,random
@@ -684,7 +676,7 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
     #REDRAW_WINDOW IS ONLY FOR GRAPHICS. NO SOUND EFFECTS OR SPRITES.
     #redraw_window will show and hide sprites depending on what menu you're in and what index you have selected
-    def redraw_window(index,frame,ui):
+    def redraw_window(index,frame,ui=ui):
         #The main thing that plays in the title screen. The bg, the fizz effect, and the logo.
         WIN.blit(ui.titlebg1, (0,0))
         WIN.blit(ui.titlebglogo[frame], (0,0))
@@ -710,7 +702,7 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
         #tells the clock to tick at the rate of FPS
         clock.tick(FPS)
-        print(clock.get_fps()) #TEST ENABLE
+        # print(clock.get_fps()) #TEST ENABLE
 
         #once it sets all of the current image forms, it will then redraw the window
         redraw_window(index,frame)
@@ -810,10 +802,11 @@ def options(WIN=WIN,ui=ui):
     redraw_window()
 
     clock=pygame.time.Clock()
+    FPS=15
 
     while run:
-        clock.tick(9999999) #TEST ENABLE
-        print(clock.get_fps()) #TEST ENABLE
+        clock.tick(FPS) #TEST ENABLE
+        # print(clock.get_fps()) #TEST ENABLE
 
         # HARD-CODING PART FOR MUTE CODE. ERASE IF RE-USED.
         if settings["MUTE"][0]:
@@ -991,7 +984,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
         FPS=30
     else:
         optimLoop = 1
-        FPS = 999999 #TEST ENABLE
+        FPS = 60 #TEST ENABLE
 
     graphical=True #this is for debug purposes, where if you turn it off, the display turns off but the framerate rises heavily
 
@@ -1060,10 +1053,6 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
     while run:
 
-
-        #TEST PURPOSES: DO NOT LEAVE ENABLED
-        player.autoshoot()
-
         clock.tick(FPS)
 
         for i in range(optimLoop): update_sprites()
@@ -1103,12 +1092,13 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
             #         levelclass.form.attack()
 
 
-exit_commands=["exit","quit","leave","abort","depart"]
-while True:
-    cmd=input("COMMAND:")
-    if cmd.lower() in exit_commands:break
-    exec(cmd)
-exit()
+#DEBUG COMMAND EXECUTION
+# exit_commands=["exit","quit","leave","abort","depart"]
+# while True:
+#     cmd=input("COMMAND:")
+#     if cmd.lower() in exit_commands:break
+#     exec(cmd)
+# exit()
 
 
 

@@ -112,7 +112,6 @@ class Player(pygame.sprite.Sprite):
         self.animation()
 
     def stateManager(self):
-
         animStateEnd = time.time()
         if animStateEnd - self.stateStart >= 0.5:
             self.stateStart = time.time()
@@ -120,6 +119,7 @@ class Player(pygame.sprite.Sprite):
             if self.animState == "shoot":self.animState = "idle"
         iStateEnd=time.time()
         if iStateEnd-self.iStart >= 2.5: self.iStart=time.time();self.invincible = False
+        
     def animation(self):
         animEnd = time.time()
         if not self.playerdied:
