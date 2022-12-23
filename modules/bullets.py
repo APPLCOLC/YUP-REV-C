@@ -39,80 +39,35 @@ class Bullet(pygame.sprite.Sprite):
         if self.health <= 0:
             self.kill()
 
-class Missile(pygame.sprite.Sprite):
+class Cheat(pygame.sprite.Sprite):
     def __init__(self,arg1,arg2,sounds,enemyClass = None,b=b):
+        pygame.sprite.Sprite.__init__(self)
+
+
         self.sounds=sounds #EXPERIMENTAL RAM TEST
-        sounds.shoot_missile.play()
+        # sounds.shoot_missile.play()
 
         self.enemyClass = enemyClass
 
-        #LOCK-ON DETECTION
-        # if enemyClass != None and len(enemyClass) > 0:
-        #     enemyClass = list(enemyClass)
-        #     lockChar = enemyClass[random.randint(0,(len(enemyClass)-1))]
-        #     self.lockX = lockChar.rect.x
-        # else: self.lockX = None
+        #this shit just picks a random character to touch and touches it :)
 
-        self.lockX = None
-        self.lockY = None
         if self.enemyClass != None and len(self.enemyClass) > 0:
-            tempList = list(self.enemyClass)
-            self.lockIndex = random.randint(0,(len(self.enemyClass)-1))
-            self.lockChar = tempList[self.lockIndex]
-            self.lockX = self.lockChar.rect.x
-            self.lockY = self.lockChar.rect.y
-        else: self.lockX = None
-        self.direction = "up"
-        self.hasFlipped = True
-
-        pygame.sprite.Sprite.__init__(self)
+            self.lockIndex = random.randint(0,(len(list(self.enemyClass))-1))
+            self.lockChar = list(self.enemyClass)[self.lockIndex]
+        else:self.kill() 
+       
         self.health = 1
-        self.image = pygame.Surface((30,50))
-        self.image = b.track
-        self.image = pygame.transform.scale(self.image, (30, 50))
+
+        self.image = b.default
         self.rect = self.image.get_rect()
         #This tells the bullet to spawn in the x coordinate of arg1 and the y coordinate of arg2.
         #These are, typically, fed with YUP's coordinates.
-        self.rect.center = (arg1,arg2)
+        try:self.rect.center = self.lockChar.rect.center
+        except:self.kill()
 
     def update(self):
-
-    #RE-UPDATING THE LOCK
-        if self.lockX != None:self.lockX = self.lockChar.rect.x
-        if self.lockY != None:self.lockY = self.lockChar.rect.y
-
-    #Every frame, the bullet travels 15 pixels and deletes itself if it goes out of bounds.
-        if self.lockX != None:
-            if self.rect.x - self.lockX >= 5:
-                self.rect.x-=5
-                self.rect.x -= (self.rect.x - self.lockX) / 5
-            elif self.rect.x - self.lockX <= -5:
-                self.rect.x+=5
-                self.rect.x += abs(self.rect.x - self.lockX) / 5
-            else: self.lockX = None
-        elif self.lockX == None:pass
-        if self.lockY != None:
-            if self.rect.y - self.lockY >= 5:
-                self.rect.y -= 15
-                if self.direction == "down" and self.hasFlipped: self.direction="up";self.hasFlipped=False
-                # self.rect.y -= (self.rect.y - self.lockY) / 5
-            elif self.rect.y - self.lockY <= -5:
-                self.rect.y += 10
-                if self.direction == "up" and self.hasFlipped: self.direction = "down";self.hasFlipped = False
-                # self.rect.y += abs(self.rect.y - self.lockY) / 5
-            else: self.lockY = None
-        elif self.lockY == None:
-            if self.direction == "down" and self.hasFlipped: self.direction = "up";self.hasFlipped = False
-            self.rect.y -= 20
-
-    #Kill Code
-        if self.rect.top <= 0:
-            self.kill()
-        if self.health <= 0:
-            self.kill()
-
-    #Directional Code
-        if not self.hasFlipped:self.image = pygame.transform.flip(self.image,False,True);self.hasFlipped = True
+        if self.health<=0:self.kill()
+        self.kill()
 
 class Quad(pygame.sprite.Sprite):
     def __init__(self, direction, spawnx, spawny, b=b):
@@ -197,7 +152,7 @@ def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullett
             allsprites.add(bullet)
             bulletsprites.add(bullet)
         elif bullettype == "missile":
-            bullet = Missile(playerx,playery,sounds,enemyClass=HurtSprites)
+            bullet = Cheat(playerx,playery,sounds,enemyClass=HurtSprites)
             allsprites.add(bullet)
             bulletsprites.add(bullet)
         elif bullettype == "quad":

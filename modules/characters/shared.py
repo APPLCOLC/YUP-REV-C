@@ -14,7 +14,6 @@ class SHARECHAR():
     for i in range(17):deathBoom.append(pygame.image.load("./assets/images/SHARED/BOOM/Death_Explosion-" + str(i+1) + ".png").convert_alpha()) #creates, doesn't resize
     hurtBullet=pygame.image.load("./assets/images/bullets/hurtBullet.png").convert_alpha()
 
-
 #UNIVERSAL SPRITES
 class charHat(pygame.sprite.Sprite):
     def __init__(self):

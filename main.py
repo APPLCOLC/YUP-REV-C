@@ -26,7 +26,7 @@ playersprite = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 
-from modules import player as playerguy
+import modules.player as playerguy
 from modules.bullets import display_bullet
 
 
@@ -282,9 +282,6 @@ def readapply(settings=None, nonmain_song=None):
 """DEBUG TEXT--------------------"""
 def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-PLAYREMOVE
 
-    font=pygame.font.Font("./assets/font/Setfont-Regular.ttf",20)
-
-
     #adding items to the print list 
     baseText=["-DEBUG-"]
 
@@ -307,11 +304,12 @@ def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-
 
     else:
         for i in range(len(baseText)):
+            font = pygame.font.Font("./assets/font/Setfont-Regular.ttf", 20)
             surface = font.render(str(baseText[i]), True, "white")
             WIN.blit(surface,(0,((i*20)+30)))
-            del surface
+            del surface,font
 
-    del font,baseText
+    del baseText
  
 
 
@@ -1260,7 +1258,8 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
     while run:
 
-        clock.tick(FPS)
+        if graphical:clock.tick(FPS)
+        else:clock.tick(0)
 
         #FPS code: running values twice if graphical FPS is halved
         for i in range(optimLoop): 

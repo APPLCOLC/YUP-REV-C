@@ -31,7 +31,7 @@ class data:
         self.maxChar=None #maximum characters spawned
 
         self.formation=None
-        self.imports=['nope','fihs','stickman','spike']
+        self.imports=['nope','fihs','stickman','spike','zapp']
         self.speed=1
         self.speedINC={"time":True,"char":False}
 
@@ -41,7 +41,7 @@ class data:
         self.time=None
         self.maxChar=4
         self.formation={
-            0:['stickman','stickman','stickman','stickman'],
+            0:['stickman','zapp','zapp','stickman'],
         }
     def lvl2(self):
         self.__init__()  # resets values
