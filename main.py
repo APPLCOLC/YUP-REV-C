@@ -742,30 +742,7 @@ class Formation():
 
 """LEVEL ASSET CODE--------------------"""
 class Level():
-    """
-    -PSEUDOCODE
-
-    --START
-    FileReader checks the world order.
-    FileReader compiles a dictionary for how the level order should go, and writes it to a temporary file.
-    FileReader will then check what level number you are on in the save file and it will open the data from the "worlds" folder
-    FileReader, using the "worlds" data, will then load several things:
-        -background data
-        -OST data
-        -UI data
-        -character formations (from the "worldData" folder)
-        
-    --UPDATE
-    FileReader updates the background (updates the frame):
-        It will always do this, even if there is one frame.
-        The folder is the name of the background, and each frame is simply "frame[x]"
-            So, if there is only a frame 1, it will repeatedly loop back to frame 1
-    FileReader updates the music:
-        It just checks to see if the music has ended or not and replays it.
-        It will also check for a custom command to stop the music.
-    FileReader updates the formation (read next section)
-    """
-    def __init__(self,WIN,allsprites,enemies,bullets,player):
+    def __init__(self,WIN,allsprites,enemies,bullets,player,level=None):
 
         self.allsprites,self.enemies,self.bullets,self.player,self.level=allsprites, enemies, bullets, player,1
         #WORLD is the WORLD FILE read, LEVEL is the LEVEL IN THE WORLD, imported_world_file is the imported world file
@@ -776,31 +753,29 @@ class Level():
 
         #looks at the list of worlds and figures out the world name based off the index of world_num
         with open("./leveldata/worldOrder.txt","r") as data:
-            self.worldName= eval(data.read())[self.world_num]
+            self.worldName= eval(data.read())[self.world_num-1]
 
-        #opens the world's information text file.
-        #this text file contains the soundtrack used, the background used, the ui type, and the formation file
-        with open(("./leveldata/worlds/" + self.worldName + ".txt"),"r") as data: 
-            self.worldInfo=eval(data.read())
+        # #opens the world's information text file.
+        # #this text file contains the soundtrack used, the background used, the ui type, and the formation file
+        # with open(("./leveldata/worlds/" + self.worldName + ".txt"),"r") as data: 
+        #     self.worldInfo=eval(data.read())
 
 
         #imports the formation data from 
-        the_code = "import leveldata.worldData." + self.worldInfo['filename'] + " as imported_world_file"
+        the_code = "import leveldata." + self.worldName + " as imported_world_file"
         worldData={}
 
         exec(the_code,globals(),worldData)
 
-        self.lvl=worldData['imported_world_file'];del worldData #lvl is the world data, level is the number for level, sorry for the confusion
-        
-        self.lvl=self.lvl.data()
+        self.lvl=worldData['imported_world_file'].data()
         # except:print("IMPORT ERROR")
 
 
         #loading the music
-        sounds.play_song(str(self.worldInfo['songname']))
+        sounds.play_song(str(self.lvl.worldInfo['songname']))
 
         #loading the background
-        self.bg=BG(WIN, self.worldInfo['bg'])
+        self.bg=BG(WIN, self.lvl. worldInfo['bg'])
 
 
         """fileReader will then pass off the worldData file to 'formation', as well as the current level"""
