@@ -1,2 +1,0 @@
-These are MODULES, they are imported by STATES in the MAIN DIRECTORY.
-Due to this, their file addresses are not written from THEIR directory, and they are written as if they were in the MAIN DIRECTORY.

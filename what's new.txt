@@ -1,0 +1,15 @@
+2022/12/24 12:00 build
+
+removed tempsave, as reading and writing to files should be strictly limited
+removed all instances of tempsave being used, as variables in RAM will be the better option for usage
+removed the level formation feature, and replaced it with randomly generated levels 
+this means the game will run infinitely and will never have duplicate settings_keys_images
+
+YET TO IMPLEMENT (most important -> least important)
+-rising intensity as each world is cleared
+--lowering the time between character throwdowns
+--rising the maximum amount of characters
+--rising the amount of characters thrown during a throwdown
+
+-transitions from world to world, including bg, music, imports, etc.
+-bosses to finish a world after enog levels have been cleared

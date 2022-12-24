@@ -17,7 +17,6 @@ except:WIN = pygame.display.set_mode((600,800))
 
 """INITIALIZATION--------------------"""
 pygame.font.init()
-
 pygame.mixer.init()
 pygame.mixer.set_num_channels(16)
 
@@ -312,23 +311,6 @@ def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-
     del baseText
  
 
-
-"""RESETTING TEMPSAVE--------------------"""
-def reset_progress():
-
-    with open("./assets/tempsave.txt","w") as data:
-
-        tempsave = {
-            "NewGame?":True,
-            "LevelSelect?":False,
-            "CurrentLevel":1,
-            "PlayerInstance":None
-            }
-
-        data.write(str(tempsave))
-
-
-
 """LOADING--------------------"""
 def LongLoad(WIN=WIN,ui=ui):
     WIN.blit(ui.loadbg,(0,0))
@@ -362,7 +344,6 @@ def display_score(scoreValue,coord,WIN,snap=True,shadow=True,color=(0,0,0),shado
 
 
 """APPLYING SOME TEMPORARY VALUES--------------------"""
-reset_progress()
 LongLoad()
 
 
@@ -533,10 +514,11 @@ class BG():
 
 
 
-
 """FORMATION FOR GAMEPLAY--------------------"""
 class Formation():
     def __init__(self, allsprites, enemies, bullets, player, file=None,level=1):
+        
+        print("formation created")
 
         #note to self, the player class is used, not the sprite group.
         """
@@ -554,8 +536,6 @@ class Formation():
 
         self.totalchar=0 #this is the highest amount of characters onscreen. it will create a ratio based off of how many characters are still alive to create a speed
 
-        self.timePassed=False #this is for the exit animation if too much time has passed
-
         self.exitSpeed=10 #this is the speed in which the formation exits
 
         self.bullets=bullets #bullet classes
@@ -569,7 +549,9 @@ class Formation():
         self.curFrame=0 #count for when to send down a formations
 
 
-        """importing all enemies in file.imports"""
+        """importing all enemies in file.imports
+        note, file.imports is just a list of the text files needed to be imported
+        self.imports contains the actual imported classes"""
         if self.file.imports != None:
 
             for item in self.file.imports:
@@ -578,35 +560,44 @@ class Formation():
                 exec(the_code, globals(), self.imports)
 
 
-        """running the methods that change the formation class"""
-        if level == 1: self.file.lvl1()
-        elif level==2:self.file.lvl2()
-        elif level==3:self.file.lvl3()
-        elif level==4:self.file.lvl4()
-        else:pass
+        """RANDOMLY GENERATING A FORMATION
+        there is no code within the leveldata file that actually spawns a specific formation
+        therefore, it will randomly generate one here based on the what the imports list demands"""
+        self.formation={}
+        rowsize=random.randint(5,10)
+        columnsize=random.randint(10,15)
+        for i in range(rowsize): #row generation
+            self.formation[i]=[]
+            for j in range(columnsize): #column generation
+                self.formation[i].append(random.choice(self.file.imports))
+        del rowsize,columnsize
+        # print(self.formation)
+        
 
 
         howmanychar=0 #howmanychar is a counter that checks how many characters are there, that's it, and its mostly for debug purposes
 
-        self.size=[0,len(self.file.formation)] # size is the offset made by how large the file is. It will always use this for positioning and bouncing.
+        self.size=[0,len(self.formation)] # size is the offset made by how large the file is. It will always use this for positioning and bouncing.
 
-        for i in range(len(self.file.formation)):
-            if len(self.file.formation[i])>self.size[0]:
-                self.size[0]=len(self.file.formation[i]) #calculates the width of the formation, appended to SIZE
+        for i in range(len(self.formation)):
+            if len(self.formation[i])>self.size[0]:
+                self.size[0]=len(self.formation[i]) #calculates the width of the formation, appended to SIZE
 
-        self.pos = [(random.randint(50, (600 - (self.size[0] * self.file.char_distance_x)))),75]  # randomly generating start position
+        # print(self.size)
+
+        self.pos = [50,75]  
 
 
         #CODE FOR SPAWNING CHARACTERS
-        for i in range(len(self.file.formation)):
-            for j in range(len(self.file.formation[i])):
+        for i in range(len(self.formation)):
+            for j in range(len(self.formation[i])):
                 """adds a character to the formation, self.activeformation
                 howmanychar is the key value
                 it spawns the character using the text value in the formation as a key for the imports
                 if a formation says {1:["nope"]}, the program will spawn a "nope" if it is in the imports list"""
                 try:
 
-                    self.activeformation[howmanychar] = self.imports[self.file.formation[i][j]].Char(allsprites=allsprites, bullets=bullets, player=player,enemies=enemies,formationPos=self.pos, offset=((j*self.file.char_distance_x),(i*self.file.char_distance_y)))
+                    self.activeformation[howmanychar] = self.imports[self.formation[i][j]].Char(allsprites=allsprites, bullets=bullets, player=player,enemies=enemies,formationPos=self.pos, offset=((j*self.file.char_distance_x),(i*self.file.char_distance_y)))
                     
                     allsprites.add(self.activeformation[howmanychar]);enemies.add(self.activeformation[howmanychar])
                     
@@ -630,12 +621,6 @@ class Formation():
         for key,value in self.activeformation.items():value.formationUpdate(self.pos)
 
 
-        #KILL CODE for if too much TIME has PASSED
-        if self.timePassed:
-            self.exit()
-            return #overrides everything else
-
-
         #MOVEMENT code for updating CHARACTER POSITIONS
         self.formMove()
 
@@ -652,8 +637,6 @@ class Formation():
             if value.state == "dead": self.activeformation.pop(key);break
         if len(self.activeformation)==0: self.finished=True
     
-        #if the formation level is timed, it runs this function
-        if self.file.time!=None: self.timer()
 
 
     #The code for causing a character to attack
@@ -690,13 +673,6 @@ class Formation():
         self.pos[0]+=self.speed
         self.pos[1]=math.sin(self.pos[0]/10)*10 + 100
 
-    #runs a timer where the formation will exit if a timer runs out
-    def timer(self):
-        end=time.time()
-        self.clk=(self.file.time-(end-self.start))
-        if end-self.start>=self.file.time:self.timePassed=True
-        else:pass
-
 
     def throwDown(self): #shitty name, will change later
 
@@ -708,7 +684,8 @@ class Formation():
             if item.state=="attack":totalCharAtk+=1
 
         #checks if both the time is right and there aren't too many characters onscreen before causing a character to attack
-        if (totalCharAtk<self.file.maxChar) and (self.curFrame>=(self.file.spawn_time)):
+        
+        if ((self.file.maxChar==None) or (totalCharAtk<self.file.maxChar)) and (self.curFrame>=(self.file.spawn_time)):
             self.attack()
             self.curFrame=0
             # print("eligible")
@@ -747,9 +724,7 @@ class Level():
         self.allsprites,self.enemies,self.bullets,self.player,self.level=allsprites, enemies, bullets, player,1
         #WORLD is the WORLD FILE read, LEVEL is the LEVEL IN THE WORLD, imported_world_file is the imported world file
 
-        #figures out what world number the player is on based off the tempsave file
-        with open("./assets/tempsave.txt","r") as data:
-            self.world_num=eval(data.read())["CurrentLevel"]
+        self.world_num=1
 
         #looks at the list of worlds and figures out the world name based off the index of world_num
         with open("./leveldata/worldOrder.txt","r") as data:
@@ -1128,24 +1103,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
     playersprite.add(player)
 
 
-    with open("./assets/tempsave.txt", "r+") as data:
-
-        readData = data.read()
-        readData = eval(readData)
-
-        if readData["NewGame?"]:
-            if not readData["LevelSelect?"]:
-                level = 1
-            else:
-                level = readData["CurrentLevel"]
-
-        elif not readData["NewGame?"]:
-            player.load_data(readData["PlayerInstance"]) #-PLAYREMOVE
-            level = readData["CurrentLevel"]
-
-        else:
-            level = 0
-
+    level=1
 
     if not settings["FPS"][0]:
         optimLoop=2
@@ -1160,34 +1118,8 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
 
     def exit_playstate(player, level, state_list=[enemies, bullets, playersprite, allsprites]):
-        with open("./assets/tempsave.txt", "w") as data:
-
-            try:
-                if newDict["PlayerInstance"] == None:
-                    newDict = {"NewGame?": True, "LevelSelect?": False, "CurrentLevel": 1, "PlayerInstance": None}
-                    data.write(str(newDict))
-                    # print("data overwritten: player died")
-
-                else:
-                    newDict = {"NewGame?": False, "LevelSelect?": False, "CurrentLevel": level,
-                               "PlayerInstance": player.pack_data()}
-                    data.write(str(newDict))
-
-            except:
-                if player == None:
-                    newDict = {"NewGame?": True, "LevelSelect?": False, "CurrentLevel": 1, "PlayerInstance": None}
-                    data.write(str(newDict))
-                    # print("data overwritten: player died")
-
-                else:
-                    newDict = {"NewGame?": False, "LevelSelect?": False, "CurrentLevel": level,
-                               "PlayerInstance": player.pack_data()}
-                    data.write(str(newDict))
-
         for item in state_list:
             item.empty()
- 
-        run = False
 
 
     def redraw_window(graphical):
