@@ -1,0 +1,14 @@
+2023/1/1 6:53 build
+
+removed tempsave, as reading and writing to files should be strictly limited
+removed all instances of tempsave being used, as variables in RAM will be the better option for usage
+removed the level formation feature, and replaced it with randomly generated levels 
+this means the game will run infinitely and will never have duplicate settings_keys_images
+intensity will rise as you progress through levels
+changed controls (shoot/confirm is j, switch/back is k, pause is i, shield is h)
+moved player to characters folder
+cleaned up some image storage
+(UNFINISHED) added ability to change worlds
+changed game size to 450x600
+
+
