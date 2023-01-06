@@ -12,8 +12,7 @@ try:
     pygame.display.set_icon(icon)
 except: pass
 
-try:WIN = pygame.display.set_mode((600,800),pygame.SCALED)
-except:WIN = pygame.display.set_mode((600,800))
+WIN = pygame.display.set_mode((450,600),pygame.SCALED)
 
 """INITIALIZATION--------------------"""
 pygame.font.init()
@@ -25,8 +24,8 @@ playersprite = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
 enemies = pygame.sprite.Group()
 
-import modules.player as playerguy
-from modules.bullets import display_bullet
+import characters.player as playerguy
+from modules.bullets import *
 
 
 """IMAGES##############################################################"""
@@ -55,7 +54,7 @@ class UI_images():
     pause3=pygame.image.load('./assets/images/UI/pause/paus\'d (3).png')
 
     pause=[pause1,pause2,pause3]
-    for i in range(len(pause)): pause[i]=pygame.transform.scale(pause[i],(600,200))
+    for i in range(len(pause)): pause[i]=pygame.transform.scale(pause[i],(450,150)).convert_alpha()
     del pause1,pause2,pause3
 
 
@@ -103,21 +102,9 @@ class UI_images():
 
 
     #SETTINGS IMAGES
-    optionbg = pygame.image.load("./assets/images/UI/options/bg.png")
-    option_placeholder = pygame.image.load("./assets/images/UI/options/placeholder.png")
-    option_funnymode = pygame.image.load("./assets/images/UI/options/funnymode.png")
-    option_ostvolume = pygame.image.load("./assets/images/UI/options/ostVolume.png")
-    option_sfxvolume = pygame.image.load("./assets/images/UI/options/sfxVolume.png")
-    option_mute = pygame.image.load("./assets/images/UI/options/MUTE.png")
-    option_fullscreen = pygame.image.load("./assets/images/UI/options/fullscreen.png")
-    option_lowquality = pygame.image.load("./assets/images/UI/options/LowQuality.png")
-    option_fps = pygame.image.load("./assets/images/UI/options/FPS.png")
+    optionbg = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/bg.png"),(450,600))
     option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30))
     option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30))
-    option_spriteFlick = pygame.image.load("./assets/images/UI/options/spriteFlicker.png")
-    option_extraVisuals = pygame.image.load("./assets/images/UI/options/extraVisuals.png")
-    option_simpleBG = pygame.image.load("./assets/images/UI/options/SimpleBG.png")
-
 
     #GAME OVER IMAGES
     continueGraphic1 = pygame.image.load("./assets/images/UI/game over/continue 1.png")
@@ -131,15 +118,13 @@ class UI_images():
 
 
     #BAGKGROUNDS
-    levelselectBG = pygame.image.load("./assets/images/UI/level select/levelSelectBG.png")
-    titlebg1 = pygame.image.load("./assets/images/UI/TITLEMENU/background.png")
-    erorrbg = pygame.image.load("./assets/images/UI/errors/bg.png")
-    loadbg = pygame.image.load("./assets/images/UI/splash.png")
+    titlebg1 = pygame.transform.scale(pygame.image.load("./assets/images/UI/TITLEMENU/background.png"),(450,600))
+    erorrbg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"),(450,600))
+    loadbg = pygame.transform.scale(pygame.image.load("./assets/images/UI/splash.png"),(450,600))
 
 
     #CURSOR
     cursor = pygame.image.load("./assets/images/UI/LIVES/000.png")
-
 ui=UI_images #this creates an object of the class. this is what everything refers to 
 
 
@@ -270,16 +255,16 @@ def readapply(settings=None, nonmain_song=None):
 
     # screen adjust
     if fullscreen:
-        pygame.display.set_mode((600, 800), pygame.FULLSCREEN | pygame.SCALED)
+        pygame.display.set_mode((450, 600), pygame.FULLSCREEN | pygame.SCALED)
     else:
-        pygame.display.set_mode((600, 800), pygame.SCALED)
+        pygame.display.set_mode((450, 600), pygame.SCALED)
 
     return settings
 
 
 
 """DEBUG TEXT--------------------"""
-def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-PLAYREMOVE
+def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,level,WIN=None): #-PLAYREMOVE
 
     #adding items to the print list 
     baseText=["-DEBUG-"]
@@ -287,6 +272,8 @@ def debug_displays(allsprites,sprite_class_dict,variables,time,FPS,WIN=None): #-
     baseText.append("FPS:"+str(round(FPS,1)))
 
     baseText.append("TIME:"+str(round(time,1)))
+
+    baseText.append("LEVEL:" + str(level))
 
     for key, value in variables.items():
         baseText.append(str(key) + "-var:" + str(len(value)))
@@ -323,7 +310,6 @@ def shortLoad(WIN=WIN,ui=ui):
     pygame.display.update()
 
 
-
 """SCORE DISPLAY--------------------"""
 def display_score(scoreValue,coord,WIN,snap=True,shadow=True,color=(0,0,0),shadowColor=(255,255,255),size=20):
 
@@ -345,6 +331,7 @@ def display_score(scoreValue,coord,WIN,snap=True,shadow=True,color=(0,0,0),shado
 
 """APPLYING SOME TEMPORARY VALUES--------------------"""
 LongLoad()
+readapply()
 
 
 
@@ -353,6 +340,7 @@ LongLoad()
 
 
 """IMPORTANT MODULES##############################################################"""
+
 
 """BACKGROUNDS--------------------"""
 class BG():
@@ -364,15 +352,7 @@ class BG():
                 current frame (int) (starts at 1)
                 WIN (the window)
                 prefix (string)
-                    save several frame arguments as values:
-                        x
-                        (x)
-                        frame (x)
-                        framex
-                        frame x
-                        Frame (x)
-                        Framex
-                        Frame x
+                    save several frame arguments as values
                 there are several try/except statements that cycle through these frame arguments until one works, in which it saves that one as the preferred prefix
             all values are taken in as arguments, except prefix
             it will then blit the first frame as a test
@@ -381,8 +361,14 @@ class BG():
             if there is an error, like the frames going out-of-range, the current frame cycles back to 1.
 """
     def __init__(self, WIN, photoName='null',curFrame=1):
+        # print(photoName)
+
         #beginning values
-        self.WIN,self.photoName,self.curFrame=WIN,photoName,curFrame #converting arguments to variables
+        self.WIN=WIN
+        self.photoName=photoName
+        self.curFrame=curFrame
+        # print(self.photoName)
+
         self.prefix=None #the prefix used for loading the directory
         self.dir=[] #all of the images loaded into one list
         self.bgY,self.bgX=0,0 #scroll stuff
@@ -397,6 +383,7 @@ class BG():
         for item in prefixList:
 
             try:
+                # print(('./assets/images/bg/' + self.photoName + '/' + prefixList[x][0] + '1' + prefixList[x][1] + '.png'))
                 photo=pygame.image.load(('./assets/images/bg/' + self.photoName + '/' + prefixList[x][0] + '1' + prefixList[x][1] + '.png'))
                 self.prefix=prefixList[x]
                 del x,photo
@@ -407,6 +394,7 @@ class BG():
 
             if x > len(prefixList): x=0;self.photoName='null'
 
+        # print(self.photoName)
 
         #this *tries* to open the background's config.txt file, which gives you extra options for modifying values 
         #if none are found, the program promptly moves on like it doesn't exist 
@@ -418,6 +406,8 @@ class BG():
         except Exception as E:
             self.config=None
 
+        # print(self.photoName)
+
 
         #assembling a list of images using the prefixes given before
         #the frame it uses for searching goes up by 1 every iteration
@@ -428,7 +418,7 @@ class BG():
                 #if there is a configuration
                 if self.config != None:
                     item=pygame.image.load(('./assets/images/bg/' + self.photoName + '/' + self.prefix[0] + str(self.curFrame) + self.prefix[1] + '.png'))
-                    item=pygame.transform.scale(item,(600,800))
+                    item=pygame.transform.scale(item,(450,600))
                     item=pygame.transform.flip(item,self.config['flip_horiz'],self.config['flip_vert'])
                     item.convert_alpha();item.set_alpha(self.config['opacity'])
                     self.dir.append(item) #adds item to main directory
@@ -436,8 +426,9 @@ class BG():
 
                 #if there is no configuration
                 else:
+                    # print(('./assets/images/bg/' + self.photoName + '/' + self.prefix[0] + str(self.curFrame) + self.prefix[1] + '.png'))
                     item=pygame.image.load(('./assets/images/bg/' + self.photoName + '/' + self.prefix[0] + str(self.curFrame) + self.prefix[1] + '.png'))
-                    item=pygame.transform.scale(item,(600,800)).convert_alpha()
+                    item=pygame.transform.scale(item,(450,600)).convert_alpha()
                     self.dir.append(item) #adds item to main directory
                     del item #deletes the item to prevent duplicate values 
 
@@ -449,32 +440,17 @@ class BG():
                 self.curFrame=1
                 break
 
+        # print(self.photoName)
+        # print("------")
 
-    #WHAT IS DECOY CODE?
-    #Basically, if an image is scrolling, there will always be a part of the screen with no background occupying it.
-    #So, to solve this issue, there is a "decoy bg" placed above and below the background to prevent the issue. 
-    def decoys(self):
-        if self.bgY!=0:
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX,self.bgY-800))
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX,self.bgY+800))
 
-        if self.bgX!=0:
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX+600,self.bgY))
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX-600,self.bgY))
-
-        if self.bgY!=0 and self.bgX!=0:
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX+600,self.bgY-800))
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX-600,self.bgY+800))
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX+600,self.bgY+800))
-            self.WIN.blit(self.dir[self.curFrame],(self.bgX-600,self.bgY-800))
-
-        return
 
 
 
     #This is the code that will run on-frame.
     #It does not display the background, just update the current image to *be* displayed.
     def update(self):
+        # print(self.photoName)
 
         self.WIN.fill("black")#initial screen fill in case of transparancy 
 
@@ -496,8 +472,8 @@ class BG():
             #scroll code
             self.bgY += self.config['scrollVert']
             self.bgX += self.config['scrollHoriz']
-            if self.bgY >= 800 or self.bgY <= -800: self.bgY=0
-            if self.bgX >= 600 or self.bgX <= -600: self.bgX=0
+            if self.bgY >= 600 or self.bgY <= -600: self.bgY=0
+            if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
 
             #RESETTING THE FRAME
             if self.curFrame>=len(self.dir):self.curFrame=0   
@@ -505,7 +481,28 @@ class BG():
         #absent config
         else:
             self.curFrame+=1
+            # RESETTING THE FRAME
+            if self.curFrame >= len(self.dir): self.curFrame = 0
 
+            # WHAT IS DECOY CODE?
+    # Basically, if an image is scrolling, there will always be a part of the screen with no background occupying it.
+    # So, to solve this issue, there is a "decoy bg" placed above and below the background to prevent the issue.
+    def decoys(self):
+        if self.bgY != 0:
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX, self.bgY - 600))
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX, self.bgY + 600))
+
+        if self.bgX != 0:
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY))
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY))
+
+        if self.bgY != 0 and self.bgX != 0:
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY - 600))
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY + 600))
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY + 600))
+            self.WIN.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY - 600))
+
+        return
 
     #Displaying the bg is treated differently due to fps changes in playstate
     def display_bg(self):
@@ -513,12 +510,16 @@ class BG():
         if self.config != None: self.decoys() 
 
 
-
+    #Destroying the bg will delete all the background values and replace them with something else
+    def destroy(self):
+        for item in self.dir: del item
+        for item in dir(self):
+            del item
 """FORMATION FOR GAMEPLAY--------------------"""
 class Formation():
-    def __init__(self, allsprites, enemies, bullets, player, file=None,level=1):
-        
-        print("formation created")
+    def __init__(self, allsprites, enemies, bullets, player, importlist, imports, level, level_in_world, file=None):
+
+        # print("formation created")
 
         #note to self, the player class is used, not the sprite group.
         """
@@ -532,7 +533,8 @@ class Formation():
 
         self.finished=False
 
-        self.dirH=['l','r'];self.dirH=self.dirH[random.randint(0,1)] #potential [l/r]: randomized
+        self.dirH=['l','r']
+        self.dirH=self.dirH[random.randint(0,1)] #potential [l/r]: randomized
 
         self.totalchar=0 #this is the highest amount of characters onscreen. it will create a ratio based off of how many characters are still alive to create a speed
 
@@ -542,40 +544,56 @@ class Formation():
 
         self.file=file #the piece of code used that holds all the python data
 
-        self.imports={}  # self.imports is the actual imported character files
-
-        self.activeformation = {}  # the actual character objects; NOT file.formation, which is just a class list
-
         self.curFrame=0 #count for when to send down a formations
 
+        self.imports=imports
+        self.importlist=importlist
 
-        """importing all enemies in file.imports
-        note, file.imports is just a list of the text files needed to be imported
-        self.imports contains the actual imported classes"""
-        if self.file.imports != None:
-
-            for item in self.file.imports:
-
-                the_code = "import modules.characters." + str(item) + " as " + str(item)
-                exec(the_code, globals(), self.imports)
-
-
-        """RANDOMLY GENERATING A FORMATION
-        there is no code within the leveldata file that actually spawns a specific formation
-        therefore, it will randomly generate one here based on the what the imports list demands"""
-        self.formation={}
-        rowsize=random.randint(5,10)
-        columnsize=random.randint(10,15)
-        for i in range(rowsize): #row generation
-            self.formation[i]=[]
-            for j in range(columnsize): #column generation
-                self.formation[i].append(random.choice(self.file.imports))
-        del rowsize,columnsize
-        # print(self.formation)
+        self.formation={} # gives the order of character spawns
+        self.activeformation = {} # stores the actual character objects; for maintaining and position handling
+        # self.formationSprites = pygame.sprite.Group()  # sprite group used for wiping all characters
         
+        """OH BOY, A GLOB OF ELIF STATEMENTS!
+        This is mostly due to the three forms of formation there are: random, random manual, and ordered
+        Everything is commenterd out accordingly. """
+        manual=len(self.file.manual_formations)>0 and self.file.manual_type!=0 #boolean value, since this will be used several times
+        
+        #random manual formation
+        if manual and self.file.manual_type==1:
+            
+            #picking a random manual formation
+            if random.randint(0,100) < self.file.manual_influence:
+                self.formation=random.choice(self.file.manual_formations)
+
+            #randomly generating a formation if that doesn't work
+            else:
+                self.formation=self.randomly_generate_formation
+
+        #ordered manual formation
+        elif manual and self.file.manual_type==2:
+            
+            #nonloopingss
+            if not self.file.manual_loop and (level)<=len(self.file.manual_formations):
+                self.formation=self.file.manual_formations[level-1]
+            #nonlooping if past manual order - RANDOM
+            elif not self.file.manual_loop and level>len(self.file.manual_formations):
+                self.formation=self.randomly_generate_formation()
+            
+            #looping
+            elif self.file.manual_loop:
+                
+                #shedding the extra levels to figure out which manual_formations index too use
+                index = level - (len(self.file.manual_formations)*((level-1)//len(self.file.manual_formations)))
+                self.formation = self.formation=self.file.manual_formations[index-1]
+
+        #random formation
+        else:  self.formation=self.randomly_generate_formation()
+
+        del manual
 
 
-        howmanychar=0 #howmanychar is a counter that checks how many characters are there, that's it, and its mostly for debug purposes
+
+        howmanychar=0 #howmanychar is a counter that checks how many characters are there
 
         self.size=[0,len(self.formation)] # size is the offset made by how large the file is. It will always use this for positioning and bouncing.
 
@@ -599,7 +617,9 @@ class Formation():
 
                     self.activeformation[howmanychar] = self.imports[self.formation[i][j]].Char(allsprites=allsprites, bullets=bullets, player=player,enemies=enemies,formationPos=self.pos, offset=((j*self.file.char_distance_x),(i*self.file.char_distance_y)))
                     
-                    allsprites.add(self.activeformation[howmanychar]);enemies.add(self.activeformation[howmanychar])
+                    allsprites.add(self.activeformation[howmanychar])
+                    enemies.add(self.activeformation[howmanychar])
+                    # self.formationSprites.add(self.activeformation[howmanychar])
                     
                     howmanychar+=1
 
@@ -610,6 +630,7 @@ class Formation():
 
         self.start=time.time() #this is the start timer. the more time passes, the faster the game goes
         self.speed=0 #speedup/slowdown code
+
 
 
     def update(self):
@@ -657,11 +678,11 @@ class Formation():
     #This is why you see all the characters move around in a pattern
     def formMove(self):
         #change direction to left
-        if self.pos[0]>=(600-(self.size[0]*self.file.char_distance_x)): 
+        if self.pos[0]>=(450-(self.size[0]*self.file.char_distance_x)): 
             self.speed-=self.file.speed*0.025 ;self.dirH='l'
 
         #change direction to right
-        elif self.pos[0]<=100: 
+        elif self.pos[0]<=10: 
             self.speed+=self.file.speed*0.025;self.dirH='r'
 
         #determining speed if the formation is not going out of bounds
@@ -688,75 +709,118 @@ class Formation():
         if ((self.file.maxChar==None) or (totalCharAtk<self.file.maxChar)) and (self.curFrame>=(self.file.spawn_time)):
             self.attack()
             self.curFrame=0
-            # print("eligible")
         else:
             pass
-            # print("ineligible")
 
-    
-    #this is a fancy little thing where the formation flies off screen and gives you no points
-    def exit(self):
 
-        self.exitSpeed-=1
-        self.pos[1]+=self.exitSpeed
+    def destroy(self):
 
-        if self.dirH.lower()=='r':self.pos[0]+=self.speed/2
-        elif self.dirH.lower()=='l':self.pos[0]-=self.speed/2
+        for key,value in self.activeformation.items():
+            value.kill()
+            # print(str(key),str(value),"DESTROYED.")
+        self.activeformation={}
+        #saying the formation is complete
+        # self.finished=True
 
-        if self.pos[1]<=-1000:
 
-            #killing each individual item in the formation
-            while len(self.activeformation)>0:
-                for key,value in self.activeformation.items():
-                    value.state="dead";value.kill()
-                    if value.state == "dead":self.activeformation.pop(key);break
-            
-            #saying the formation is complete
-            self.finished=True
+    def randomly_generate_formation(self):
+        """RANDOMLY GENERATING A FORMATION
+        there is no code within the leveldata file that actually spawns a specific formation
+        therefore, it will randomly generate one here based on the what the imports list demands"""
 
+        formation={}
+        columnsize=random.randint(self.file.char_min_width,self.file.char_max_width) #columns are width
+        rowsize=random.randint(self.file.char_min_height,self.file.char_max_height) #rows are height
+
+        for i in range(rowsize): #row generation
+            formation[i]=[]
+            for j in range(columnsize): #column generation
+                formation[i].append(random.choice(self.importlist))
+        
+        del rowsize,columnsize
+        return formation
 
 
 
 """LEVEL ASSET CODE--------------------"""
 class Level():
-    def __init__(self,WIN,allsprites,enemies,bullets,player,level=None):
+    def __init__(self,WIN,allsprites,enemies,bullets,player,world_num):
+        with open("./leveldata/worldOrder.txt", "r") as data:
+            self.worldOrder=eval(data.read())
 
-        self.allsprites,self.enemies,self.bullets,self.player,self.level=allsprites, enemies, bullets, player,1
-        #WORLD is the WORLD FILE read, LEVEL is the LEVEL IN THE WORLD, imported_world_file is the imported world file
+        self.allsprites = allsprites
+        self.enemies = enemies
+        self.bullets = bullets
+        self.player = player
+        self.level = 1
+        self.level_in_world=1
+        self.world_num=world_num
+        self.world_num_looped = self.world_num - (self.world_num * (self.world_num//len(self.worldOrder)))
+        # print(self.world_num_looped)
+        
+        #refresh-world-data default values
+        self.worldName=""
+        self.bg=None
+        self.form=None
 
-        self.world_num=1
+        # print(str(self.world_num), "|", str(self.world_num_looped))
+
+        self.refresh_world_data()
+
+    def refresh_world_data(self):
+        #resetting values if they still exist
+        self.level_in_world=1
+        if self.form!=None:
+            self.form.destroy()
+            del self.form
+            self.form=None
+        if self.bg!=None:
+            self.bg.destroy()
+            del self.bg
+            self.bg=None
 
         #looks at the list of worlds and figures out the world name based off the index of world_num
-        with open("./leveldata/worldOrder.txt","r") as data:
-            self.worldName= eval(data.read())[self.world_num-1]
+        self.worldName= self.worldOrder[self.world_num_looped-1]
 
-        # #opens the world's information text file.
-        # #this text file contains the soundtrack used, the background used, the ui type, and the formation file
-        # with open(("./leveldata/worlds/" + self.worldName + ".txt"),"r") as data: 
-        #     self.worldInfo=eval(data.read())
-
-
-        #imports the formation data from 
+        #imports the formation data
         the_code = "import leveldata." + self.worldName + " as imported_world_file"
         worldData={}
 
         exec(the_code,globals(),worldData)
-
-        self.lvl=worldData['imported_world_file'].data()
-        # except:print("IMPORT ERROR")
+        self.world_file=worldData['imported_world_file'].data(level=self.level)
+        del worldData
 
 
         #loading the music
-        sounds.play_song(str(self.lvl.worldInfo['songname']))
+        sounds.play_song(str(self.world_file.worldInfo['songname']))
 
         #loading the background
-        self.bg=BG(WIN, self.lvl. worldInfo['bg'])
+        self.bg=BG(WIN, self.world_file.worldInfo['bg'])
 
+        #importing the characters
+        """importing all enemies in file.imports
+        note, file.imports is just a list of the text files needed to be imported
+        self.imports contains the actual imported classes"""
+        self.imports={}
+        if self.world_file.imports != None:
+
+            for item in self.world_file.imports:
+
+                the_code = "import characters." + str(item) + " as " + str(item)
+                exec(the_code, globals(), self.imports)
 
         """fileReader will then pass off the worldData file to 'formation', as well as the current level"""
-        self.form=Formation(self.allsprites, self.enemies, self.bullets, self.player, file=self.lvl, level=self.level) #takes allsprites to handle spawning enemies, enemies to do the same, and bullets to give to the enemies to register hit detectiona
+        self.form=Formation(self.allsprites,
+                            self.enemies,
+                            self.bullets,
+                            self.player,
+                            importlist=self.world_file.imports,
+                            imports=self.imports,
+                            level=self.level,
+                            level_in_world=self.level_in_world,
+                            file=self.world_file) #takes allsprites to handle spawning enemies, enemies to do the same, and bullets to give to the enemies to register hit detectiona
 
-        self.world_ended=False
+        self.world_ended=False       
 
     def update(self):
 
@@ -766,13 +830,33 @@ class Level():
              
             if self.form.finished:
                 """This is the reset code. It deletes self.form, raises the level by 1, and then re-makes self.form"""
+                self.form.destroy()
                 del self.form
+                
                 self.level+=1
-                self.form = Formation(self.allsprites, self.enemies, self.bullets, self.player, file=self.lvl, level=self.level)
+                self.level_in_world+=1
+                self.world_file.update_intensities(self.level)
+                
+                self.form=Formation(
+                    self.allsprites,
+                    self.enemies,
+                    self.bullets,
+                    self.player,
+                    importlist=self.world_file.imports,
+                    imports=self.imports,
+                    level=self.level ,
+                    level_in_world=self.level_in_world,
+                    file=self.world_file)
+
                  
         except AttributeError: pass
 
+    def advance_world(self):
+        self.world_num+=1
 
+        self.world_num_looped = self.world_num - ( len(self.worldOrder) * ((self.world_num-1)//len(self.worldOrder)) )
+
+        # print(str(self.world_num),"|",str(self.world_num_looped))
 
 
         
@@ -802,17 +886,17 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
         #The main thing that plays in the title screen. The bg, the fizz effect, and the logo.
         WIN.blit(ui.titlebg1, (0,0))
-        WIN.blit(ui.titlebglogo[frame], (0,0))
+        WIN.blit(ui.titlebglogo[frame], (225-(ui.titlebglogo[frame].get_width()/2),25))
 
         #"START," "OPTIONS," and "QUIT" only appear during the first part of the title menu
-        if index == 1: WIN.blit(ui.START[1],(200,350))
-        else: WIN.blit(ui.START[0],(200,350))
+        if index == 1: WIN.blit(ui.START[1],(150,275))
+        else: WIN.blit(ui.START[0],(150,275))
 
-        if index == 2: WIN.blit(ui.OPTIONS[1],(200,450))
-        else: WIN.blit(ui.OPTIONS[0],(200,450))
+        if index == 2: WIN.blit(ui.OPTIONS[1],(150,375))
+        else: WIN.blit(ui.OPTIONS[0],(150,375))
 
-        if index == 3: WIN.blit(ui.QUIT[1],(200,550))
-        else: WIN.blit(ui.QUIT[0],(200,550))
+        if index == 3: WIN.blit(ui.QUIT[1],(150,475))
+        else: WIN.blit(ui.QUIT[0],(150,475))
 
         pygame.display.update() #TEST ENABLE
 
@@ -821,10 +905,10 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
         # timer code for the yup and logo frames
         end = time.time()
-        if end - start >= 0.1:
+        if end - start >= 0.25:
             start = time.time()
             frame += 1
-            if frame > 2: frame = 0
+            if frame > (len(ui.titlebglogo)-1): frame = 0
 
         #tells the clock to tick at the rate of FPS
         clock.tick(FPS)
@@ -846,7 +930,7 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
                 #This code checks for an enter press.
                 #It will always lock out the enter button if it is being held down. It waits until enter is released to register again.
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_j:
                     sounds.select.play()
 
                     #if you picked the first option, start, the program will set menudepth to 3 and begin the game
@@ -860,17 +944,17 @@ def title(WIN=WIN,sounds=sounds,ui=ui):
 
 
                 #Escape press for quitting game
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_k:
                     sounds.back.play()
                     exit()
 
 
                 #Item selection; changes index
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w:
                     if index > 1: index -=1
                     sounds.scroll.play()
 
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s:
                     if index < 3: index +=1
                     sounds.scroll.play()
 
@@ -944,22 +1028,21 @@ def options(WIN=WIN,ui=ui):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_k:
                     sounds.back.play()
                     # writing the settings
-                    with open("./assets/settings.txt", "w+") as data: data.write(str(settings))
                     curSong.stop()
                     return "title"
 
-                if event.key == pygame.K_DOWN and index < (len(settings) - 1):
+                if event.key == pygame.K_s and index < (len(settings) - 1):
                     sounds.scroll.play()
                     index += 1
                     # print(index)
-                if event.key == pygame.K_UP and index > 0:
+                if event.key == pygame.K_w and index > 0:
                     sounds.scroll.play()
                     index -= 1
                     # print(index)
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_j:
                     sounds.select.play()
                     # list(settings)[index] is the key name
                     keyindex = list(settings)[index]
@@ -975,7 +1058,7 @@ def options(WIN=WIN,ui=ui):
                             settings[keyindex][0] = False
                     else:
                         sounds.denied.play()
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a:
                     sounds.select.play()
                     # list(settings)[index] is the key name
                     keyindex = list(settings)[index]
@@ -985,7 +1068,7 @@ def options(WIN=WIN,ui=ui):
                     else:
                         sounds.denied.play()
                     # print(values[index])
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_d:
                     sounds.select.play()
                     # list(settings)[index] is the key name
                     keyindex = list(settings)[index]
@@ -1002,6 +1085,7 @@ def options(WIN=WIN,ui=ui):
 
                 if event.key == pygame.K_p:
                     readapply(settings, curSong)
+                    with open("./assets/settings.txt", "w+") as data: data.write(str(settings))
                 #only redraws the window when a setting is changed. No FPS needed.    
                 redraw_window(index=index)          
 
@@ -1031,14 +1115,14 @@ def pause(WIN=WIN, img=None, ui=ui): #it takes in the UI images as an argument t
         if img==None:WIN.fill("black")
         else:WIN.blit(img,(0,0))
 
-        WIN.blit(ui.pause[graphicFrame],((300-(ui.pause[graphicFrame].get_width()/2)),100))
+        WIN.blit(ui.pause[graphicFrame],((225-(ui.pause[graphicFrame].get_width()/2)),100))
 
-        if index == 1: WIN.blit(ui.CONTINUE[1],((300-(ui.CONTINUE[1].get_width()/2)),350))
-        else: WIN.blit(ui.CONTINUE[0],((300-(ui.CONTINUE[0].get_width()/2)),350))
-        if index == 2: WIN.blit(ui.OPTIONS[1],((300-(ui.OPTIONS[1].get_width()/2)),450))
-        else: WIN.blit(ui.OPTIONS[0],((300-(ui.OPTIONS[0].get_width()/2)),450))
-        if index == 3: WIN.blit(ui.QUIT[1],((300-(ui.QUIT[1].get_width()/2)),550))
-        else: WIN.blit(ui.QUIT[0],((300-(ui.QUIT[0].get_width()/2)),550))
+        if index == 1: WIN.blit(ui.CONTINUE[1],((225-(ui.CONTINUE[1].get_width()/2)),275))
+        else: WIN.blit(ui.CONTINUE[0],((225-(ui.CONTINUE[0].get_width()/2)),275))
+        if index == 2: WIN.blit(ui.OPTIONS[1],((225-(ui.OPTIONS[1].get_width()/2)),375))
+        else: WIN.blit(ui.OPTIONS[0],((225-(ui.OPTIONS[0].get_width()/2)),375))
+        if index == 3: WIN.blit(ui.QUIT[1],((225-(ui.QUIT[1].get_width()/2)),475))
+        else: WIN.blit(ui.QUIT[0],((225-(ui.QUIT[0].get_width()/2)),475))
         pygame.display.update()
 
     while run:
@@ -1063,13 +1147,13 @@ def pause(WIN=WIN, img=None, ui=ui): #it takes in the UI images as an argument t
             if event.type == pygame.KEYDOWN:
 
                 #UI
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w:
                     if index > 1: index -= 1
                     sounds.scroll.play()
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s:
                     if index < 3: index += 1
                     sounds.scroll.play()
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_j:
                     sounds.select2.play()
                     if index == 1:
                         curSong.stop()
@@ -1103,7 +1187,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
     playersprite.add(player)
 
 
-    level=1
+    world_num=1
 
     if not settings["FPS"][0]:
         optimLoop=2
@@ -1113,6 +1197,12 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
         optimLoop = 1
         FPS = 60 #TEST ENABLE
 
+    run = True  # Variable that tells the game to loop
+    clock = pygame.time.Clock()  # The clock is essentially just a thing that tells the computer to update the screen after a set period of time.
+    # LEVEL INITIALIZATION
+    levelclass = Level(WIN, allsprites, enemies, bullets, player=player, world_num=world_num)  # -PLAYREMOVE
+
+    start_time = time.time()
 
     graphical=True #this is for debug purposes, where if you turn it off, the display turns off but the framerate rises heavily
 
@@ -1124,24 +1214,25 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
     def redraw_window(graphical):
 
-        bg.display_bg() 
+        levelclass.bg.display_bg()
         allsprites.draw(WIN)
 
         # UI -PLAYREMOVE
         display_bullet(WIN, (0, 0), player.currentweapon) #-PLAYREMOVE
         player.display_health(WIN, (30, 0)) #-PLAYREMOVE
-        display_score(player.score, (600, 0), WIN) #-PLAYREMOVE
+        display_score(player.score, (450, 0), WIN) #-PLAYREMOVE
 
         # DEBUG 
-        val=WIN if graphical else None
-        debug_displays(allsprites,
-                       {"PLAYER": playersprite, "ENEMIES": enemies, "BULLETS": bullets},
-                       {"PLAYSTATE": dir(), "PLAYER": dir(playerguy),
-                        "FILEREADER": dir(Level), "PYGAME": dir(pygame)},
-                       (time.time() - start_time),
-                       clock.get_fps(),
-                       WIN=val)
-        del val
+        # val=WIN if graphical else None
+        # debug_displays(allsprites,
+        #                {"PLAYER": playersprite, "ENEMIES": enemies, "BULLETS": bullets},
+        #                {"PLAYSTATE": dir(), "PLAYER": dir(playerguy),
+        #                 "FILEREADER": dir(Level), "PYGAME": dir(pygame)},
+        #                (time.time() - start_time),
+        #                clock.get_fps(),
+        #                levelclass.level,
+        #                WIN=val)
+        # del val
 
         # FINISHING WITH AN UPDATE STATEMENT
         if graphical:pygame.display.update() 
@@ -1149,18 +1240,11 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
     def update_sprites():
         allsprites.update()
-        bg.update() 
+        levelclass.bg.update()
 
 
     # VARIABLE DEFINITIONS WHEN THE CODE BEGINS.
-    run = True  # Variable that tells the game to loop
-    clock = pygame.time.Clock()  # The clock is essentially just a thing that tells the computer to update the screen after a set period of time.
-    # LEVEL INITIALIZATION
-    levelclass = Level(WIN, allsprites, enemies, bullets, player=player) #-PLAYREMOVE 
-    bg = levelclass.bg 
 
-
-    start_time = time.time()
 
 
     while run:
@@ -1178,7 +1262,7 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
         #game over initialization
         if player.playerdied: 
-            exit_playstate(player, level)
+            exit_playstate(player, world_num)
             return "title"  
 
 
@@ -1196,13 +1280,13 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
             if event.type == pygame.KEYDOWN:
 
                 # pause code
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_i:
                     # freezes everything and opens PAUSESTATE
                     player.reset_movement() 
 
                     pygame.mixer.music.pause()
 
-                    timePaused =  pause(img=bg.dir[0])
+                    timePaused =  pause(img=levelclass.bg.dir[0])
 
                     # If an error occurs, or any exit code is brought up, it spits you back at the title
                     if type(timePaused) != float:
@@ -1222,6 +1306,9 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
                 if event.key==pygame.K_1:
                     if graphical:graphical=False
                     else:graphical=True
+                if event.key==pygame.K_2:
+                    levelclass.advance_world()
+                    levelclass.refresh_world_data()
 
 
 
@@ -1239,14 +1326,13 @@ def play(allsprites=allsprites, playersprite=playersprite, bullets=bullets, enem
 
 "MAIN LOOP###############################################################"
 next_state = "title"
+settings=readapply
 
 while True:
     #ADJUSTS THE VOLUME EVERY SINGLE TIME A STATE CHANGES
     shortLoad()
-    settings = readapply()
 
     if type(next_state) == str:
-
         if next_state == "start":
             LongLoad()
             next_state = play()

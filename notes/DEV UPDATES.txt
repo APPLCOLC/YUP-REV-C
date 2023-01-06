@@ -8,8 +8,6 @@
 -LARGE: Sounds are now one class entity. This makes it so sounds are still only loaded once.
 -optimized the formation attack() function to include less loops, as the previous method was very buggy
 
-
-
 10/18/22 - 0.3.0 update
 (sorry for the long hiatus I forgot about this file)
 -characters are now in space-invaders-like formations

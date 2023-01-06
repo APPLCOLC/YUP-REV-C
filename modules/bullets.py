@@ -23,7 +23,6 @@ class Bullet(pygame.sprite.Sprite):
         sounds.shoot_realistic.play()
         pygame.sprite.Sprite.__init__(self)
         self.health = 1
-        self.image = pygame.Surface((20,20))
         self.image = b.default
         self.image = pygame.transform.scale(self.image, (20, 20))
         self.rect = self.image.get_rect()
@@ -38,6 +37,17 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
         if self.health <= 0:
             self.kill()
+
+class Shield(pygame.sprite.Sprite):
+    def __init__(self,player,b=b):
+        pygame.sprite.Sprite.__init__(self)
+        self.player=player
+        self.health=float("inf")
+        self.image=pygame.transform.scale(b.default,(100,100))
+        self.rect=self.image.get_rect()
+        self.rect.center=self.player.rect.center
+    def update(self):
+        self.rect.center=self.player.rect.center
 
 class Cheat(pygame.sprite.Sprite):
     def __init__(self,arg1,arg2,sounds,enemyClass = None,b=b):
@@ -116,39 +126,12 @@ class Laser(pygame.sprite.Sprite):
         if self.health <= 0:
             self.kill()
 
-class Large(pygame.sprite.Sprite):
-    def __init__(self,arg1,arg2,b=b):
-        # shoot_bap[random.randint(0,3)].play()
-        # shoot_realistic.play()
-        pygame.sprite.Sprite.__init__(self)
-        self.health = 5
-        self.image = pygame.Surface((100,100))
-        self.image = b.default
-        self.image = pygame.transform.scale(self.image, (100, 100))
-        self.rect = self.image.get_rect()
-        #This tells the bullet to spawn in the x coordinate of arg1 and the y coordinate of arg2.
-        #These are, typically, fed with YUP's coordinates.
-        self.rect.center = (arg1,arg2)
-
-    def update(self):
-    #Every frame, the bullet travels 15 pixels and deletes itself if it goes out of bounds.
-        self.rect.y -= 25
-        if self.rect.top <= 0:
-            self.kill()
-        if self.health <= 0:
-            self.kill()
-
-
 
 def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullettype = "default"):
     if len(bulletsprites)<2:
-        if bullettype == "default" and len(bulletsprites)<2:
+        if bullettype == "default":
             
             bullet = Bullet(playerx,playery,sounds)
-            allsprites.add(bullet)
-            bulletsprites.add(bullet)
-        elif bullettype == "large":
-            bullet = Large(playerx,playery)
             allsprites.add(bullet)
             bulletsprites.add(bullet)
         elif bullettype == "missile":
@@ -156,18 +139,10 @@ def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullett
             allsprites.add(bullet)
             bulletsprites.add(bullet)
         elif bullettype == "quad":
-            bullet = Quad(0, playerx,playery)
-            allsprites.add(bullet)
-            bulletsprites.add(bullet)
-            bullet2 = Quad(1, playerx, playery)
-            allsprites.add(bullet2)
-            bulletsprites.add(bullet2)
-            bullet3 = Quad(2, playerx, playery)
-            allsprites.add(bullet3)
-            bulletsprites.add(bullet3)
-            bullet4 = Quad(3, playerx, playery)
-            allsprites.add(bullet4)
-            bulletsprites.add(bullet4)
+            for i in range(4):
+                bullet=Quad(i,playerx,playery)
+                allsprites.add(bullet)
+                bulletsprites.add(bullet)
         elif bullettype == "laser":
             bullet = Laser(playerx, playery)
             allsprites.add(bullet)
@@ -176,6 +151,13 @@ def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullett
             bullet = Bullet(playerx,playery,sounds)
             allsprites.add(bullet)
             bulletsprites.add(bullet)
+    elif len(bulletsprites)<4:
+        if bullettype == "quad":
+            for i in range(4):
+                bullet=Quad(i,playerx,playery)
+                allsprites.add(bullet)
+                bulletsprites.add(bullet)
+
     # elif bullettype == "missile":
     #         bullet = Missile(playerx,playery,sounds,enemyClass=HurtSprites)
     #         allsprites.add(bullet)
@@ -185,9 +167,6 @@ def shoot(playerx,playery,allsprites,bulletsprites, HurtSprites, sounds, bullett
 def display_bullet(WIN,positionTuple,bullettype,b=b):
     if bullettype == "default":
         image = pygame.transform.scale(b.default, (18, 18))
-    elif bullettype == "large":
-        image = pygame.transform.scale(b.default, (25, 25))
-        positionTuple = (positionTuple[0]-4,positionTuple[1]-4)
     elif bullettype == "missile":
         image = pygame.transform.scale(b.track, (18, 18))
     elif bullettype == "quad":
