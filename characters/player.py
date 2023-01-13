@@ -1,5 +1,5 @@
 import pygame,time
-from modules.bullets import *
+from bullets.shared import *
 
 
 class YUPANIMATIONS():
@@ -51,7 +51,7 @@ class YUPANIMATIONS():
 
 class Player(pygame.sprite.Sprite):
     # Player, of course, is the main character that you control and play as.
-    def __init__(self, HurtSprites ,bulletsprites,allsprites,sounds):
+    def __init__(self, HurtSprites ,bulletsprites,allsprites,sounds, loaded_bullets):
         self.frame = 0
         self.animStart = time.time()
         self.stateStart = time.time()
@@ -98,8 +98,9 @@ class Player(pygame.sprite.Sprite):
         #inventory elements
         self.invenIndex = 0
         self.shield_meter=100
-        self.inventory = ["default","quad","laser"]
+        self.inventory = ["default","cheat"]
         self.currentweapon = self.inventory[self.invenIndex]
+        self.loaded_bullets=loaded_bullets
 
     def update(self):
         if not self.playerdied:
@@ -186,7 +187,14 @@ class Player(pygame.sprite.Sprite):
             # Space simply creates a bullet, which gets placed where YUP is.
             if event.key == pygame.K_j and self.playerdied == False:
                 self.animState = "shoot";self.stateStart=time.time()
-                shoot(self.rect.center[0], self.rect.center[1], self.allsprites, self.bulletsprites, self.HurtSprites,self.sounds,bullettype=self.currentweapon)
+                shoot(
+                    loaded=self.loaded_bullets,
+                    bullet_name=self.inventory[self.invenIndex],
+                    coordinates=self.rect.center,
+                    all_sprites=self.allsprites,
+                    enemy_sprites=self.HurtSprites,
+                    bullet_sprites=self.bulletsprites,
+                )
 
         # This is the code that checks for a key being released.
         if event.type == pygame.KEYUP:
@@ -275,7 +283,14 @@ class Player(pygame.sprite.Sprite):
                 self.invenIndex += 1
                 self.sounds.select.play()
     def autoshoot(self):
-        shoot(self.rect.center[0], self.rect.center[1], self.allsprites, self.bulletsprites, self.HurtSprites, self.sounds, self.inventory[self.invenIndex])
+        shoot(
+            loaded=self.loaded_bullets,
+            bullet_name=self.inventory[self.invenIndex],
+            coordinates=self.rect.center,
+            all_sprites=self.allsprites,
+            enemy_sprites=self.HurtSprites,
+            bullet_sprites=self.bulletsprites,
+        )
 
     # This is the code loaded as a temporary save whenever you exit states.
     # This takes your inventory, your health, your coodinates, etc.

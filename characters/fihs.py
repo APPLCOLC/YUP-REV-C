@@ -25,7 +25,7 @@ class Char(pygame.sprite.Sprite):
                            #behavior patterns: "enter" "idle" "attack" "return" "die"
         self.health=1 #Health for characters.
                       #Almost always 1.
-        self.scorevalue=10 #Score given to player
+        self.scorevalue=25 #Score given to player
         self.RCM=False #RCM = Return Condition Met.
                        #This is only used in attack state.
                        #This is to check if the character should return or not.

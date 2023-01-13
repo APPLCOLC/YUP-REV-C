@@ -49,7 +49,7 @@ class Char(pygame.sprite.Sprite):
                            #behavior patterns: "enter" "idle" "attack" "return" "die"
         self.health=1 #Health for characters.
                       #Almost always 1.
-        self.scorevalue=10 #Score given to player
+        self.scorevalue=100 #Score given to player
 
         self.offset = offset #offset that is used with the formation.
                             #This never changes.
