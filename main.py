@@ -545,225 +545,218 @@ class BG:
 class Formation:
     def __init__(self, player, available_char, level, file=None):
 
-        # print("formation created")
-
-        #note to self, the player class is used, not the sprite group.
-        """
-        FILE is the piece of code used that holds all the python data.
-            the world file is a text file that holds all the setting data
-            and the world data file is a python file that holds things such as intensity and formation
-        FILE also holds the available characters to be used in a world
-        """
-        # print("formation created")
-        self.pos=[0,0]
-
-        self.finished=False
-
-        self.dirH=['l','r']
-        self.dirH=self.dirH[random.randint(0,1)] #potential [l/r]: randomized
-
-        self.totalchar=0 #this is the highest amount of characters onscreen. it will create a ratio based off of how many characters are still alive to create a speed
-
-        self.exitSpeed=10 #this is the speed in which the formation exits
-
-        self.bullets=bullet_group #bullet classes
-
-        self.file=file #the piece of code used that holds all the python data
-
-        self.curFrame=0 #count for when to send down a formations
-
-        self.loaded=loaded_characters
-        self.available_char=available_char
-
-        self.formation={} # gives the order of character spawns
-        self.activeformation = {} # stores the actual character objects; for maintaining and position handling
-        # self.formationSprites = pygame.sprite.Group()  # sprite group used for wiping all characters
+        #DEFINITIONS
+        self.state="idle" #level's state; "start","idle", and "complete"
+        self.file=file #level's python file
         
-        """OH BOY, A GLOB OF ELIF STATEMENTS!
-        This is mostly due to the three forms of formation there are: random, random manual, and ordered
-        Everything is commenterd out accordingly. """
-        manual=len(self.file.manual_formations)>0 and self.file.manual_type!=0 #boolean value, since this will be used several times
+        self.pos=[0,100] #position lol
+        self.direction = random.choice(['l','r']) #direction, either 'l' or 'r'
+        self.speed=0 #speed the formation moves in idle 
+        self.current_frame = 0 #calculating when to throw a character down
+
+        self.total_characters = 0 #total amount of characters
+        self.formation = {} #spawnlist
+        self.spawned_formation = [] #spawned characters
+        self.available_char=available_char #characters that can be randomly generated
+        manual=len(self.file.manual_formations)>0 and self.file.manual_type!=0 #boolean value, figures out if formation is manual
+        self.formation_size=[0,0] #size of the formation 
+
         
-        #random manual formation
-        if manual and self.file.manual_type==1:
+        #SPAWNLIST
+        # manual spawnlist
+        if manual:
+            #random manual formation
+            if self.file.manual_type==1:
+                #picks a random manual_formation a certain percent of the time, randomly generates one the other percent
+                if random.randint(0,100) < self.file.manual_influence: #chance picks a manual formation
+                    self.formation=random.choice(self.file.manual_formations)
+                else: #chance picks elsewise 
+                    self.formation = self.random_formation()
+            #ordered manual formtion
+            elif self.file.manual_type==2:
+                #nonlooping 
+                if not self.file.manual_loop: 
+                    #if level is within the length of the formations
+                    if level <= len(self.file.manual_formations):
+                        self.formation = self.file.manual_formations[level-1] #level -1 because it doesn't start at 0
+                    #if level has surpassed length of the formations
+                    else:
+                        self.formation = self.random_formation()
+                #looping
+                else:
+                    #shedding the looped numbers off of levels
+                    index = level - (len(self.file.manual_formations)*((level-1)//len(self.file.manual_formations)))
+                    #setting formation
+                    self.formation = self.formation=self.file.manual_formations[index-1]
+        #random spawnlist     
+        else:
+            self.formation = self.random_formation()
+
+        
+        #FORMATION SIZE
+        self.update_size()
+
+        #spawning characters based on the spawnlist (self.formation)
+        #temporary, as the spawning process will be far longer time-wise
+        for i in range(len(self.formation)): 
+
+            self.spawned_formation.append([])
             
-            #picking a random manual formation
-            if random.randint(0,100) < self.file.manual_influence:
-                self.formation=random.choice(self.file.manual_formations)
+            columns=0#used instead of j, as some empty characters will be put in the formation
 
-            #randomly generating a formation if that doesn't work
-            else:
-                self.formation=self.randomly_generate_formation
-
-        #ordered manual formation
-        elif manual and self.file.manual_type==2:
-            
-            #nonloopings
-            if not self.file.manual_loop and level<=len(self.file.manual_formations):
-                self.formation=self.file.manual_formations[level-1]
-            #nonlooping if past manual order - RANDOM
-            elif not self.file.manual_loop and level>len(self.file.manual_formations):
-                self.formation=self.randomly_generate_formation()
-            
-            #looping
-            elif self.file.manual_loop:
-                
-                #shedding the extra levels to figure out which manual_formations index to use
-                index = level - (len(self.file.manual_formations)*((level-1)//len(self.file.manual_formations)))
-                self.formation = self.formation=self.file.manual_formations[index-1]
-
-        #random formation
-        else:  self.formation=self.randomly_generate_formation()
-
-        del manual
-
-
-
-        howmanychar=0 #howmanychar is a counter that checks how many characters are there
-
-        self.size=[0,len(self.formation)] # size is the offset made by how large the file is. It will always use this for positioning and bouncing.
-
-        for i in range(len(self.formation)):
-            if len(self.formation[i])>self.size[0]:
-                self.size[0]=len(self.formation[i]) #calculates the width of the formation, appended to SIZE
-
-        # print(self.size)
-
-        self.pos = [50,75]  
-
-
-        #CODE FOR SPAWNING CHARACTERS
-        for i in range(len(self.formation)):
             for j in range(len(self.formation[i])):
-                """adds a character to the formation, self.activeformation
-                howmanychar is the key value
-                it spawns the character using the text value in the formation as a key for the loaded list
-                if a formation says {1:["nope"]}, the program will spawn a "nope" if it is in the available_char list"""
+
                 try:
 
-                    self.activeformation[howmanychar] = self.loaded[self.formation[i][j]].Char(allsprites=universal_group, bullets=bullet_group, player=player, enemies=enemy_group, formationPos=self.pos, offset=((j * self.file.char_distance_x), (i * self.file.char_distance_y)))
-                    
-                    universal_group.add(self.activeformation[howmanychar])
-                    enemy_group.add(self.activeformation[howmanychar])
-                    
-                    howmanychar+=1
+                    #adds a character to the formation
+                    self.spawned_formation[i].append(
+                        loaded_characters[self.formation[i][j]].Char(
+                                allsprites=universal_group, 
+                                bullets=bullet_group, 
+                                player=player, 
+                                enemies=enemy_group, 
+                                formationPos=self.pos, 
+                                offset=((j * self.file.char_distance_x), 
+                                    (i * self.file.char_distance_y))
+                                    )
+                    )
+                except KeyError:
+                    continue
+                #adding to group
+                universal_group.add(self.spawned_formation[i][columns])
+                enemy_group.add(self.spawned_formation[i][columns])
 
-                except KeyError: pass
-
-
-        self.totalchar=len(self.activeformation) #max character amount
-
-        self.start=time.time() #this is the start timer. the more time passes, the faster the game goes
-        self.speed=0 #speedup/slowdown code
-
+                columns+=1
 
 
     def update(self):
-        """
-        This line of code below me runs the function "formationUpdate" for every item in the formation
-        This is, if not stated before, because every asset in the game is already "updated" through the pygame sprite class feature
-        So this function updates the formation position in the code
-        """
-        for key,value in self.activeformation.items():value.formationUpdate(self.pos)
+        #self-explanatory
+        if self.state == "idle": self.idle()
+        elif self.state == "start": self.start()
+
+        self.update_size()
+        self.update_character_formation_pos()
+        self.remove_dead()
 
 
-        #MOVEMENT code for updating CHARACTER POSITIONS
-        self.formation_move()
-
-        #THROWDOWN code for making CHARACTERS ATTACK
-        self.throw_down()
-
-
-        """
-        The piece of code below this is for removing any dead items from the formation dictionary.
-        This is for telling when to move on in the level, to make another formation.
-        This COULD be done with a sprite class, but it is just easier and more understandable this way. 
-        """
-        for key, value in self.activeformation.items():
-            if value.state == "dead": self.activeformation.pop(key);break
-        if len(self.activeformation)==0: self.finished=True
-    
-
-
-    #The code for causing a character to attack
-    def attack(self):
-        #creates a list of character keys that are currently in idle state
-        idle_list=[]
-
-        #checks each character, if they are idle, their key gets added to the list
-        for key in self.activeformation.keys():
-            if self.activeformation[key].state=="idle":
-                idle_list.append(key)
-
-        #picks a random idle character's key and sets them to attack. 
-        if len(idle_list)>0:self.activeformation[idle_list[random.randint(0,(len(idle_list)-1))]].state="attack";return
-
-
-    #The code for changing the current formation positon
-    #This is why you see all the characters move around in a pattern
-    def formation_move(self):
-        #change direction to left
-        if self.pos[0]>=(450-(self.size[0]*self.file.char_distance_x)): 
-            self.speed-=self.file.speed*0.025 ;self.dirH='l'
-
-        #change direction to right
+    def idle(self):
+        
+        #updating the movement
+        
+        #changing the direction from right to left
+        if self.pos[0]>=(500-(self.formation_size[0]*self.file.char_distance_x)):
+            self.speed-=self.file.speed*0.025
+            self.direction='l'
+        #changing the direction from left to right
         elif self.pos[0]<=10: 
-            self.speed+=self.file.speed*0.025;self.dirH='r'
-
-        #determining speed if the formation is not going out of bounds
+            self.speed+=self.file.speed*0.025
+            self.direction='r'
+        #speeding up if no direction change
         else:
-            if self.dirH=='l': self.speed = self.file.speed*-1
-            elif self.dirH == 'r': self.speed = self.file.speed
-
-        #actually moving the formation once the speed was set
+            if self.direction=='l': self.speed = self.file.speed*-1
+            elif self.direction == 'r': self.speed = self.file.speed
+        #updating positions based on speed
         self.pos[0]+=self.speed
         self.pos[1]=math.sin(self.pos[0]/10)*10 + 100
 
 
-    def throw_down(self): #shitty name, will change later
-
-        self.curFrame+=1
-        total_char_attack=0
-
-        #counting every character that is currently attacking
-        for item in self.activeformation.values():
-            if item.state=="attack":total_char_attack+=1
-
-        #checks if both the time is right and there aren't too many characters onscreen before causing a character to attack
+        #attacking based on time
+        self.calculate_attack_time()
         
-        if (self.file.maxChar is None or total_char_attack<self.file.maxChar) and self.curFrame>=self.file.spawn_time:
-            self.attack()
-            self.curFrame=0
-        else:
-            pass
+    def start(self):pass
 
+    def calculate_attack_time(self):
+        #calculating when to make a character attack
 
-    def destroy(self):
+        self.current_frame += 1
+        total_attack_enemies = 0 
 
-        for key,value in self.activeformation.items():
-            value.kill()
-            # print(str(key),str(value),"DESTROYED.")
-        self.activeformation={}
-        #saying the formation is complete
-        # self.finished=True
+        #calcuating the amount of enemies attacking
+        for i in range(len(self.spawned_formation)):
+            for j in range(len(self.spawned_formation[i])):
+                if self.spawned_formation[i][j].state == "attack":
+                    total_attack_enemies += 1
+        
+        #checking if the right amount of enemies are attacking and if enough time has passed
+        if (self.file.maxChar is None or total_attack_enemies < self.file.maxChar) and (self.current_frame >= self.file.spawn_time):
+            self.attack() 
+            self.current_frame = 0
+        
+    def attack(self):
+        #current characters in idle
+        idle_list = []
 
+        #checks characters and adds ones in idle to idle_list
+        for i in range(len(self.spawned_formation)):
+            for j in range(len(self.spawned_formation[i])):
+                if self.spawned_formation[i][j].state == "idle":
+                    idle_list.append((i,j))
+        
+        #picking a random character to make attack
+        if len(idle_list) > 0: 
+            chosen_list = random.choice(idle_list); del idle_list
+            self.spawned_formation[chosen_list[0]][chosen_list[1]].state = "attack"
+            return
 
-    def randomly_generate_formation(self):
-        """RANDOMLY GENERATING A FORMATION
-        there is no code within the leveldata file that actually spawns a specific formation
-        therefore, it will randomly generate one here based on what the available_char list demands"""
+    def update_character_formation_pos(self):
+        #updating the characters on what the formation position is
+        for i in range(len(self.spawned_formation)):
+            for j in range(len(self.spawned_formation[i])):
+                self.spawned_formation[i][j].formationUpdate(self.pos)
+    
+    def random_formation(self):
+        #randomly generates characters and puts them in a formation
+        formation = {}
 
-        formation={}
-        columnsize=random.randint(self.file.char_min_width,self.file.char_max_width) #columns are width
-        rowsize=random.randint(self.file.char_min_height,self.file.char_max_height) #rows are height
-
+        #column random size
+        columnsize = random.randint(
+            self.file.char_min_width,
+            self.file.char_max_width)
+        #row random size
+        rowsize = random.randint(
+            self.file.char_min_height,
+            self.file.char_max_height)
+        
         for i in range(rowsize): #row generation
             formation[i]=[]
             for j in range(columnsize): #column generation
                 formation[i].append(random.choice(self.available_char))
+
+        return formation 
+
+    def update_size(self):
+        #FORMATION SIZE
+        self.formation_size[1] = len(self.formation) #vertical size is figured out
+        for row in self.formation: 
+            if len(self.formation[row]) > self.formation_size[0]: #horizontal size is the longest row 
+                self.formation_size[0] = len(self.formation[row])
+
+    def remove_dead(self):
+        #deleting dead characters
+        for row in range(len(self.spawned_formation)):
+            for column in range(len(self.spawned_formation[row])):
+                if self.spawned_formation[row][column].state == "dead":
+                    self.spawned_formation[row].pop(column)
+                break
+
+        #deleting empty rows
+        for row in range(len(self.spawned_formation)):
+            if len(self.spawned_formation[row])==0:
+                self.spawned_formation.pop(row)
+                break
         
-        del rowsize,columnsize
-        return formation
+        #changing state to "complete" if there are no rows
+        if len(self.spawned_formation) == 0:
+            self.state = "complete"
+    
+    def destroy(self):
+        #deletes all characters
+        for i in range(len(self.spawned_formation)):
+            for j in range(len(self.spawned_formation[i])):
+                self.spawned_formation[i][j].kill()
+        #empties
+        self.spawned_formation = []
+        self.state = "complete"
 
 
 
@@ -827,27 +820,27 @@ class Level:
 
     def update(self):
 
-        try: #this is a try statement because there will be no form to check later
+        # try: #this is a try statement because there will be no form to check later
 
-            self.form.update()  # updates the formation
-             
-            if self.form.finished:
+        self.form.update()  # updates the formation
+            
+        if self.form.state == "complete":
 
-                """This is the reset code. It deletes self.form, raises the level by 1, and then re-makes self.form"""
-                self.form.destroy()
-                del self.form
-                
-                self.level+=1
-                self.level_in_world+=1
-                self.world_file.update_intensities(self.level)
-                
-                self.form=Formation(player=self.player, 
-                    available_char=self.world_file.imports,
-                    level=self.level, 
-                        file=self.world_file) 
+            """This is the reset code. It deletes self.form, raises the level by 1, and then re-makes self.form"""
+            self.form.destroy()
+            del self.form
+            
+            self.level+=1
+            self.level_in_world+=1
+            self.world_file.update_intensities(self.level)
+            
+            self.form=Formation(player=self.player, 
+                available_char=self.world_file.imports,
+                level=self.level, 
+                    file=self.world_file) 
 
                  
-        except AttributeError: pass
+        # except AttributeError: pass
 
     def advance_world(self):
         self.world_num+=1
@@ -1297,7 +1290,7 @@ def play(
 
                     # If an error occurs, or any exit code is brought up, it spits you back at the title
                     if type(time_paused) != float:
-                        exit_playstate(None, 1, [enemy_group, bullet_group, player_group, universal_group])
+                        exit_playstate()
                         return "title"  # Sends the character into "titlestate", removing every single bit of progress made.
 
                     pygame.mixer.music.unpause()
