@@ -596,6 +596,9 @@ class Formation:
         #FORMATION SIZE
         self.update_size()
 
+        #CENTERING FORMATION BASED ON SIZE
+        self.pos[0] = 225-(self.formation_size[0]*self.file.char_distance_x/2)
+
         #spawning characters based on the spawnlist (self.formation)
         #temporary, as the spawning process will be far longer time-wise
         for i in range(len(self.formation)): 
