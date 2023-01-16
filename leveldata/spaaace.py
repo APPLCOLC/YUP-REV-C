@@ -55,7 +55,7 @@ class data:
         self.manual_formations=[]
 
         form={
-            0:['    ','    ','nope','    ','    ','    '],
+            0:['nope'],
         };self.manual_formations.append(form)
 
         form={

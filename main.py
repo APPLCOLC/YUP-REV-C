@@ -1,6 +1,6 @@
 """START###############################################################"""
 """IMPORTS---------------------"""
-import pygame,math,time,os, random
+import pygame,math,time,os,random
 
 """DISPLAY INITIALIZATION--------------------"""
 pygame.display.set_caption("YUP")
@@ -114,9 +114,7 @@ for directory in os.listdir("./assets/images/bg/"):
             break
         break #debug remove - makes there only one image
 
-# for key,value in loaded_backgrounds.items():print(key);print(value[0]);print(value[1])
 
-# print(dir())
 
 """LEVELS---"""
 loaded_levels = {}
@@ -134,7 +132,6 @@ for item in os.listdir("./leveldata/"):
     #importing levels
     the_code = "import leveldata." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_levels)
-
 
 
 
@@ -156,11 +153,10 @@ for item in os.listdir("./bullets/"):
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
 
-# for key,value in loaded_bullets.items(): print(key)
+
+"""FINISHING---"""
 
 del x,photo, prefixList, curFrame,directory, temp, the_code
-
-
 
 """IMAGES##############################################################"""
 class UiImages:
@@ -260,7 +256,6 @@ class UiImages:
     #CURSOR
     cursor = pygame.image.load("./assets/images/UI/LIVES/000.png")
 ui=UiImages #this creates an object of the class. this is what everything refers to
-
 
 
 
@@ -546,13 +541,14 @@ class Formation:
     def __init__(self, player, available_char, level, file=None):
 
         #DEFINITIONS
-        self.state="idle" #level's state; "start","idle", and "complete"
+        self.state="start" #level's state; "start","idle", and "complete"
         self.file=file #level's python file
+        self.player=player #the player object
         
         self.pos=[0,100] #position lol
         self.direction = random.choice(['l','r']) #direction, either 'l' or 'r'
         self.speed=0 #speed the formation moves in idle 
-        self.current_frame = 0 #calculating when to throw a character down
+        self.current_frame = 0 #calculating when to throw a character down, or when to spawn a character
 
         self.total_characters = 0 #total amount of characters
         self.formation = {} #spawnlist
@@ -599,37 +595,16 @@ class Formation:
         #CENTERING FORMATION BASED ON SIZE
         self.pos[0] = 225-(self.formation_size[0]*self.file.char_distance_x/2)
 
-        #spawning characters based on the spawnlist (self.formation)
-        #temporary, as the spawning process will be far longer time-wise
-        for i in range(len(self.formation)): 
-
+        #formation spawn code
+        self.spawnlist=[]
+        self.columns=0 #instead of using the y value for some things, we use *columns*, because some blank indexes get left out
+        self.current_row=0 #this is so we know when to reset columns
+        #this will append every index in the formation spawnlist so the start state can add them in order without any complex loops
+        for i in range(len(self.formation)):
             self.spawned_formation.append([])
-            
-            columns=0#used instead of j, as some empty characters will be put in the formation
-
             for j in range(len(self.formation[i])):
+                self.spawnlist.append((i,j))
 
-                try:
-
-                    #adds a character to the formation
-                    self.spawned_formation[i].append(
-                        loaded_characters[self.formation[i][j]].Char(
-                                allsprites=universal_group, 
-                                bullets=bullet_group, 
-                                player=player, 
-                                enemies=enemy_group, 
-                                formationPos=self.pos, 
-                                offset=((j * self.file.char_distance_x), 
-                                    (i * self.file.char_distance_y))
-                                    )
-                    )
-                except KeyError:
-                    continue
-                #adding to group
-                universal_group.add(self.spawned_formation[i][columns])
-                enemy_group.add(self.spawned_formation[i][columns])
-
-                columns+=1
 
 
     def update(self):
@@ -639,7 +614,7 @@ class Formation:
 
         self.update_size()
         self.update_character_formation_pos()
-        self.remove_dead()
+        if self.state != "start": self.remove_dead()
 
 
     def idle(self):
@@ -666,7 +641,55 @@ class Formation:
         #attacking based on time
         self.calculate_attack_time()
         
-    def start(self):pass
+    def start(self):
+        #checking if time has passed
+        self.current_frame += 1
+
+        if self.current_frame >= 6:
+
+            #resetting timer
+            self.current_frame = 0
+
+            #breaking out of start state to prevent error
+            if len(self.spawnlist) <= 0: 
+                self.state = 'idle'
+                return
+
+            #resetting columns
+            if self.spawnlist[0][0] != self.current_row:
+                self.current_row = self.spawnlist[0][0]
+                self.columns = 0
+
+
+            #spawning a character
+            try:
+                #adds a character to the formation
+                self.spawned_formation[self.spawnlist[0][0]].append(
+                    loaded_characters[self.formation[self.spawnlist[0][0]][self.spawnlist[0][1]]].Char(
+                            allsprites=universal_group, 
+                            bullets=bullet_group, 
+                            player=self.player, 
+                            enemies=enemy_group, 
+                            formationPos=self.pos, 
+                            offset=((self.spawnlist[0][1] * self.file.char_distance_x), 
+                                (self.spawnlist[0][0] * self.file.char_distance_y))
+                                )
+                )
+            except KeyError:
+                self.spawnlist.pop(0)
+                return
+            #adding to group
+            universal_group.add(self.spawned_formation[self.spawnlist[0][0]][self.columns])
+            enemy_group.add(self.spawned_formation[self.spawnlist[0][0]][self.columns])
+
+            #instead of using the y value for some things, we use *columns*, because some blank indexes get left out
+            self.columns+=1
+
+            #deleting index 0 so the next one is in line
+            self.spawnlist.pop(0)
+
+
+            
 
     def calculate_attack_time(self):
         #calculating when to make a character attack
@@ -883,14 +906,20 @@ def title(window=WIN, sounds=sounds):
         window.blit(ui.titlebglogo[frame], (225 - (ui.titlebglogo[frame].get_width() / 2), 25))
 
         #"START," "OPTIONS," and "QUIT" only appear during the first part of the title menu
-        if index == 1: window.blit(ui.START[1], (150, 275))
-        else: window.blit(ui.START[0], (150, 275))
+        if index == 1: 
+            window.blit(ui.START[1], (150, 275))
+        else: 
+            window.blit(ui.START[0], (150, 275))
 
-        if index == 2: window.blit(ui.OPTIONS[1], (150, 375))
-        else: window.blit(ui.OPTIONS[0], (150, 375))
+        if index == 2: 
+            window.blit(ui.OPTIONS[1], (150, 375))
+        else: 
+            window.blit(ui.OPTIONS[0], (150, 375))
 
-        if index == 3: window.blit(ui.QUIT[1], (150, 475))
-        else: window.blit(ui.QUIT[0], (150, 475))
+        if index == 3: 
+            window.blit(ui.QUIT[1], (150, 475))
+        else: 
+            window.blit(ui.QUIT[0], (150, 475))
 
         pygame.display.update() #TEST ENABLE
 
