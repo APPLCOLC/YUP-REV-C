@@ -83,10 +83,11 @@ class Char(pygame.sprite.Sprite):
         if (30)>(self.idlePos[1]-self.rect.center[1])>(-30):
             self.rect.center = self.idlePos
             self.state = "idle"
-            # print("state is now idle")
+            # print("state is now idle")-
 
     def state_idle(self):
         self.rect.center=self.idlePos
+
     def state_attack(self):
         self.shootCounter+=1 #SHOOT COUNTER CODE
         if self.shootCounter>=self.whenToShoot:self.shootCounter=0;self.shoot() #SHOOT CODE
@@ -94,10 +95,12 @@ class Char(pygame.sprite.Sprite):
         if self.rect.top>=600:
             self.rect.center=(self.offset[0],self.offset[1]-100)
             self.state="enter" #USUALLY 'return' BUT ENTRANCE FITS HERE
+
     def state_return(self):
         self.rect.center=[(self.formationPos[0] + self.offset[0]),self.rect.center[1]]
         self.rect.y+=10
         if abs(self.rect.center[1]-(self.formationPos[1] + self.offset[1]))<5:self.state="idle"
+
     def state_die(self):pass
     # def movementUpdate(self): self.idlePos = [(self.formationPos[0] + self.offset[0]), (self.formationPos[1] + self.offset[1])];self.rect.center=self.idlePos
     def collisionUpdate(self):

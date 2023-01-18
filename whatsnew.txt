@@ -3,7 +3,7 @@ list completed:
 
 rewrite BG (Completed 1/13/22)
 rewrite Level
-rewrite formation
+rewrite formation (Completed 1/16/22)
 
 move bullets file from modules to a "bullets" folder (completed 1/11/22)
 -write each bullet like the characters are written

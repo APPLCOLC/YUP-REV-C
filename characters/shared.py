@@ -62,7 +62,7 @@ class hurtBullet(pygame.sprite.Sprite):
         self.pos,self.aim=pos,aimX #pos is the central bullet spawn position (tuple), aim is the position it aims towards (int - x)
         self.rect.center=self.pos
     def update(self):
-        self.rect.y+=5
+        self.rect.y+=10
         self.rect.x+=(self.aim-self.pos[0])/100
         if self.rect.y>=800 or self.rect.y<=0 or self.rect.x >=600 or self.rect.x <=0: self.kill()
 
