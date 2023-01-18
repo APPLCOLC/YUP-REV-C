@@ -260,13 +260,13 @@ class Player(pygame.sprite.Sprite):
             for item in Hit:
                 self.animState = "hurt";self.stateStart=time.time();self.frame=0
                 self.lives -= 1;self.invincible=True
-                self.sounds.ouch.play()
+                self.sounds.sounds["ouch.mp3"].play()
                 try: item.health-=1
                 except: pass
         if self.lives <= 0:
             self.animState = "dead"
             self.playerdied = True
-            self.sounds.death.play()
+            self.sounds.sounds["death.mp3"].play()
             self.image.set_alpha(255)
             self.deathCoord = (self.rect.center)
 
@@ -281,7 +281,7 @@ class Player(pygame.sprite.Sprite):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_k and self.playerdied == False:
                 self.invenIndex += 1
-                self.sounds.select.play()
+                self.sounds.sounds["select.mp3"].play()
     def autoshoot(self):
         shoot(
             loaded=self.loaded_bullets,
@@ -293,7 +293,7 @@ class Player(pygame.sprite.Sprite):
         )
 
     # This is the code loaded as a temporary save whenever you exit states.
-    # This takes your inventory, your health, your coodinates, etc.
+    # This takes your inventory, your health, your coordinates, etc.
     def pack_data(self):
         data = {"lives": self.lives, "inventory": self.inventory, "inventory index": self.invenIndex,
                 "score": self.score, "coord": (self.rect.x, self.rect.y)}

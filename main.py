@@ -83,15 +83,15 @@ for directory in os.listdir("./assets/images/bg/"):
     """ADDING EACH FOLDER AS LOADED_BG INDEX"""
     # loading each folder
     loaded_backgrounds[str(directory)] = [None, []]  # index 0 is config file, index 1 contains the imported images
-    
+
     """ADDING CONFIG"""
     try:
         with open(('./assets/images/bg/' + directory + '/config.txt'),"r") as data:
             loaded_backgrounds[directory][0]=eval(data.read())
-            
+
     except FileNotFoundError:
         loaded_backgrounds[directory][0]=None
-        
+
     """ADDING LOADED FRAMES TO LOADED_BACKGROUNDS"""
     #assembling a list of images using the prefixes given before
     #the frame it uses for searching goes up by 1 every iteration9?
@@ -99,13 +99,13 @@ for directory in os.listdir("./assets/images/bg/"):
     curFrame=1
     while True:
         try:
-            
+
             # print(prefix)
             item=pygame.image.load(('./assets/images/bg/' + directory + '/' + prefix[0] + str(curFrame) + prefix[1] + '.png'))
             item=pygame.transform.scale(item,(450,600)).convert_alpha()
             loaded_backgrounds[directory][1].append(item) #adds item to main directory
 
-            #updates the current frame 
+            #updates the current frame
             curFrame+=1
 
         #if an error occurs, the search is complete
@@ -148,13 +148,13 @@ for item in os.listdir("./bullets/"):
         if i > len(item)-4:continue
         else: temp += item[i]
     item=temp
-    
+
 
     #importing bullets
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
 
-"""IMAGES##############################################################"""
+"""UI IMAGES---"""
 class UiImages:
 
     #BEGIN AND END
@@ -247,73 +247,43 @@ ui=UiImages #this creates an object of the class. this is what everything refers
 
 
 
-"""SOUNDS##############################################################"""
+"""SOUNDS---"""
+
 class Sounds:
-        
+
     def __init__(self):
         ###################SOUNDS####################
         self.ostList=[];self.soundList=[]
 
-        #UI NOISES
-        self.denied=pygame.mixer.Sound('./assets/sounds/sfx_denied.wav');self.soundList.append(self.denied)
-        self.back=pygame.mixer.Sound('./assets/sounds/sfx_back.wav');self.soundList.append(self.back)
-        self.scroll=pygame.mixer.Sound('./assets/sounds/sfx_scroll.wav');self.soundList.append(self.scroll)
-        self.select=pygame.mixer.Sound('./assets/sounds/sfx_select.wav');self.soundList.append(self.select)
-        self.select2=pygame.mixer.Sound('./assets/sounds/sfx_select2.wav');self.soundList.append(self.select2)
-        self.error=pygame.mixer.Sound('./assets/sounds/QUACK.wav');self.soundList.append(self.error)
+        self.sounds = {}
+        self.ost = {}
 
-
-        #ENEMY SOUNDS
-        self.hit = pygame.mixer.Sound('./assets/sounds/sfx_boom_small.wav');self.soundList.append(self.hit)
-        self.big_hit = pygame.mixer.Sound('./assets/sounds/sfx_boom_big.wav');self.soundList.append(self.big_hit)
-        self.boss_hit = pygame.mixer.Sound('./assets/sounds/sfx_boss_hit.wav');self.soundList.append(self.boss_hit)
-        self.nyoom = pygame.mixer.Sound('./assets/sounds/sfx_nyoom.wav');self.soundList.append(self.nyoom)
-        self.death = pygame.mixer.Sound('./assets/sounds/sfx_death.wav');self.soundList.append(self.death)
-        self.ouch = pygame.mixer.Sound('./assets/sounds/sfx_ouch.wav');self.soundList.append(self.ouch)
-        self.yeah = pygame.mixer.Sound('./assets/sounds/sfx_yeah.wav');self.soundList.append(self.yeah)
-
-
-        #BULLET NOISES
-        self.shoot_bap1 = pygame.mixer.Sound('./assets/sounds/shoot_bap.wav');self.soundList.append(self.shoot_bap1)
-        self.shoot_bap2 = pygame.mixer.Sound('./assets/sounds/shoot_bap2.wav');self.soundList.append(self.shoot_bap2)
-        self.shoot_bap3 = pygame.mixer.Sound('./assets/sounds/shoot_bap3.wav');self.soundList.append(self.shoot_bap3)
-        self.shoot_bap4 = pygame.mixer.Sound('./assets/sounds/shoot_bap4.wav');self.soundList.append(self.shoot_bap4)
-        self.shoot_realistic = pygame.mixer.Sound('./assets/sounds/shoot_realistic.wav');self.soundList.append(self.shoot_realistic)
-        self.shoot_laser = pygame.mixer.Sound('./assets/sounds/shoot_laser.wav');self.soundList.append(self.shoot_laser)
-        self.shoot_bee = pygame.mixer.Sound('./assets/sounds/shoot_bee.wav');self.soundList.append(self.shoot_bee)
-        self.shoot_missile = pygame.mixer.Sound('./assets/sounds/shoot_missile.wav');self.soundList.append(self.shoot_missile)
-
+        self.offsetSounds = {}
         ##############################################
-        
-        self.offsetSounds = {self.shoot_laser:0.5,self.shoot_realistic:0.25}
 
     ###############FUNCTIONS###############-
-    @staticmethod
-    def play_song(directory):
-        current_song=pygame.mixer.music.load("./assets/ost/" + directory)
-        with open('./assets/settings.txt','r') as data:vol=eval(data.read())['OST VOL'][0]
-        pygame.mixer.music.set_volume(vol)
-        pygame.mixer.music.play(loops=10)
-        return current_song
+
+    def play_song(self,directory):
+        # with open('./assets/settings.txt','r') as data:vol=eval(data.read())['OST VOL'][0]
+        # pygame.mixer.music.set_volume(vol)
+        # pygame.mixer.music.play(loops=10)
+        pass
 
 
     @staticmethod
     def stop_song():
         pygame.mixer.music.stop()
 
-
-    @staticmethod
-    def play_nonmain_song(directory):
+    def play_nonmain_song(self,song):
         #This is specifically because if you replace the music file being played, in a menu for instance, it will not remember any song played before.
         #If you pause the game, it replaces the gameplay music with the pause music, and forges all about the gameplay music.
-        current_song=pygame.mixer.Sound("./assets/ost/" + directory)
         with open('./assets/settings.txt','r') as data:
             vol=eval(data.read())['OST VOL'][0]
-        current_song.set_volume(vol)
-        current_song.play()
-        return current_song
+        self.ost[song].set_volume(vol)
+        self.ost[song].play()
+        return self.ost[song]
     #songs are easily stopped on their own and do not need a stop function
-        
+
 
     def adjust_sounds(self, volume):
         for item in self.soundList:
@@ -326,12 +296,12 @@ class Sounds:
     def adjust_ost(volume=None):
 
         if volume is not None:
-            pygame.mixer.music.set_volume(volume)     
+            pygame.mixer.music.set_volume(volume)
 
         else:
             with open('./assets/settings.txt','r') as data:volume=eval(data.read())['OST VOL'][0]
             pygame.mixer.music.set_volume(volume)
-      
+
 
     def apply_offsets(self):
 
@@ -341,8 +311,19 @@ class Sounds:
 
             self.soundList[self.soundList.index(k)].set_volume(volume)
 
-sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this is what everything refers to 
-# print(sounds)
+sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this is what everything refers to
+
+for item in os.listdir("./assets/sounds/"):
+    sounds.sounds[str(item)] = pygame.mixer.Sound("./assets/sounds/" + str(item))
+for item in os.listdir("./assets/ost/"):
+    if ".mp3" not in item:
+        continue
+    else:
+        sounds.ost[str(item)] = pygame.mixer.Sound("./assets/ost/" + str(item))
+sounds.ost.clear()
+
+# print(sounds.container)
+
 
 """FINISHING---"""
 
@@ -384,7 +365,7 @@ settings=read_apply_settings()
 """DEBUG TEXT--------------------"""
 def debug_displays(sprite_class_dict, variables, time_passed, fps, level, win=None):
 
-    #adding items to the print list 
+    #adding items to the print list
     base_text= ["-DEBUG-", "FPS:" + str(round(fps, 1)), "TIME:" + str(round(time_passed, 1)), "LEVEL:" + str(level)]
 
     for key, value in variables.items():
@@ -408,7 +389,7 @@ def debug_displays(sprite_class_dict, variables, time_passed, fps, level, win=No
             del surface,font
 
     del base_text
- 
+
 
 """LOADING--------------------"""
 def long_load():
@@ -456,7 +437,7 @@ def display_score(score_value, coord, snap=True, shadow=True, color=(0, 0, 0), s
 class BG:
     #takes loaded backgrounds ; draws them to screen ; (update) no longer loads backgrounds automatically
     def __init__(self, photo_name='null', current_frame=1, loaded=loaded_backgrounds):
-        
+
         #beginning values
         self.bgY,self.bgX=0,0 #scroll stuff
         self.curFrame=current_frame
@@ -482,7 +463,7 @@ class BG:
             if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
 
             #RESETTING THE FRAME
-            if self.curFrame>=len(self.dir):self.curFrame=0   
+            if self.curFrame>=len(self.dir):self.curFrame=0
 
         #absent config
         else:
@@ -533,22 +514,22 @@ class Formation:
         self.file=file #level's python file
         self.player=player #the player object
         self.level = level #current level number ; for intensities
-        
+
         self.pos=[0,100] #position lol
         self.direction = random.choice(['l','r']) #direction, either 'l' or 'r'
-        self.speed=0 #speed the formation moves in idle 
+        self.speed=0 #speed the formation moves in idle
         self.current_frame = 0 #calculating when to throw a character down, or when to spawn a character
 
         self.total_characters = 0 #total amount of characters
         self.spawn_list = {} #spawnlist
         self.spawned_formation = [] #spawned characters
         self.available_char=available_char #characters that can be randomly generated
-        self.formation_size=[0,0] #size of the formation 
+        self.formation_size=[0,0] #size of the formation
 
-        
+
         self.spawn_list=self.generate_spawn_list()
 
-        
+
         #FORMATION SIZE
         self.update_size()
 
@@ -581,7 +562,7 @@ class Formation:
         self.formation_move()
         #attacking based on time
         self.calculate_attack_time()
-        
+
     def start(self):
         #moving formation
         self.formation_move()
@@ -610,17 +591,17 @@ class Formation:
                 #adds a character to the formation
                 self.spawned_formation[self.spawn_list_indexes[0][0]].append(
                     loaded_characters[self.spawn_list[self.spawn_list_indexes[0][0]][self.spawn_list_indexes[0][1]]].Char(
-                            allsprites=universal_group, 
-                            bullets=bullet_group, 
-                            player=self.player, 
-                            enemies=enemy_group, 
-                            formationPos=self.pos, 
+                            allsprites=universal_group,
+                            bullets=bullet_group,
+                            player=self.player,
+                            enemies=enemy_group,
+                            formationPos=self.pos,
                             offset=((self.spawn_list_indexes[0][1] * self.file.char_distance_x),
                                 (self.spawn_list_indexes[0][0] * self.file.char_distance_y))
                                 )
                 )
-            
-            #ignoring emtpy enemy spaces - 
+
+            #ignoring emtpy enemy spaces -
             except KeyError:
                 self.spawn_list_indexes.pop(0)
                 return
@@ -634,25 +615,25 @@ class Formation:
 
             #deleting index 0 so the next one is in line
             self.spawn_list_indexes.pop(0)
-        
+
 
     def calculate_attack_time(self):
         #calculating when to make a character attack
 
         self.current_frame += 1
-        total_attack_enemies = 0 
+        total_attack_enemies = 0
 
         #calcuating the amount of enemies attacking
         for i in range(len(self.spawned_formation)):
             for j in range(len(self.spawned_formation[i])):
                 if self.spawned_formation[i][j].state == "attack":
                     total_attack_enemies += 1
-        
+
         #checking if the right amount of enemies are attacking and if enough time has passed
         if (self.file.maxChar is None or total_attack_enemies < self.file.maxChar) and (self.current_frame >= self.file.spawn_time):
-            self.attack() 
+            self.attack()
             self.current_frame = 0
-        
+
     def attack(self):
         #current characters in idle
         idle_list = []
@@ -662,9 +643,9 @@ class Formation:
             for j in range(len(self.spawned_formation[i])):
                 if self.spawned_formation[i][j].state == "idle":
                     idle_list.append((i,j))
-        
+
         #picking a random character to make attack
-        if len(idle_list) > 0: 
+        if len(idle_list) > 0:
             chosen_list = random.choice(idle_list); del idle_list
             self.spawned_formation[chosen_list[0]][chosen_list[1]].state = "attack"
             return
@@ -674,16 +655,16 @@ class Formation:
         for i in range(len(self.spawned_formation)):
             for j in range(len(self.spawned_formation[i])):
                 self.spawned_formation[i][j].formationUpdate(self.pos)
-    
+
     def formation_move(self):
         #updating the movement
-        
+
         #changing the direction from right to left
         if self.pos[0]>=(500-(self.formation_size[0]*self.file.char_distance_x)):
             self.speed-=self.file.speed*0.025
             self.direction='l'
         #changing the direction from left to right
-        elif self.pos[0]<=10: 
+        elif self.pos[0]<=10:
             self.speed+=self.file.speed*0.025
             self.direction='r'
         #speeding up if no direction change
@@ -706,12 +687,12 @@ class Formation:
         row_size = random.randint(
             self.file.char_min_height,
             self.file.char_max_height)
-        
+
         for i in range(row_size): #row generation
             formation[i]=[]
             for j in range(column_size): #column generation
                 formation[i].append(random.choice(self.available_char))
-        return formation 
+        return formation
 
     def generate_spawn_list(self):
         spawn_list={}
@@ -728,8 +709,8 @@ class Formation:
                     spawn_list = self.random_spawn_list()
             #ordered manual formation
             elif self.file.manual_type==2:
-                #nonlooping 
-                if not self.file.manual_loop: 
+                #nonlooping
+                if not self.file.manual_loop:
                     #if level is within the length of the formations
                     if self.level <= len(self.file.manual_formations):
                         spawn_list = self.file.manual_formations[self.level-1] #level -1 because it doesn't start at 0
@@ -745,14 +726,14 @@ class Formation:
         #random spawn list
         else:
             spawn_list = self.random_spawn_list()
-        
+
         return spawn_list
 
     def update_size(self):
         #FORMATION SIZE
         self.formation_size[1] = len(self.spawn_list) #vertical size is figured out
-        for row in self.spawn_list: 
-            if len(self.spawn_list[row]) > self.formation_size[0]: #horizontal size is the longest row 
+        for row in self.spawn_list:
+            if len(self.spawn_list[row]) > self.formation_size[0]: #horizontal size is the longest row
                 self.formation_size[0] = len(self.spawn_list[row])
 
     def remove_dead(self):
@@ -770,11 +751,11 @@ class Formation:
                 self.spawned_formation.pop(row)
                 break
         del row
-        
+
         #changing state to "complete" if there are no rows
         if len(self.spawned_formation) == 0:
             self.state = "complete"
-    
+
     def destroy(self):
         #deletes all characters
         for i in range(len(self.spawned_formation)):
@@ -801,11 +782,11 @@ class Level:
         self.worldData=loaded_levels
         self.world_ended=False
         self.world_file=None
-        
+
         #refresh-world-data default values
         self.worldName=""
-        self.bg=None
-        self.form=None
+        self.bg = None
+        self.form = None
 
         self.refresh_world_data()
 
@@ -813,7 +794,7 @@ class Level:
         #resetting values if they still exist
         self.level_in_world=1
         if self.form is not None:
-            self.form.destroy();del self.form
+            self.form.destroy()
             self.form=None
 
         if self.bg is not None:
@@ -834,46 +815,50 @@ class Level:
         self.bg=BG(self.world_file.worldInfo['bg'])
 
         """fileReader will then pass off the worldData file to 'formation', as well as the current level"""
-        self.form=Formation(player=self.player, 
-            available_char=self.world_file.imports,
-            level=self.level, 
-            file=self.world_file) 
+        if self.form is None:
+            self.form=Formation(player = self.player,
+                available_char = self.world_file.imports,
+                level=self.level,
+                file=self.world_file)
+        else:
+            self.form.__init__(player = self.player,
+                available_char = self.world_file.imports,
+                level=self.level,
+                file=self.world_file)
 
-        self.world_ended=False       
+        self.world_ended=False
 
     def update(self):
 
         # try: #this is a try statement because there will be no form to check later
 
         self.form.update()  # updates the formation
-            
+
         if self.form.state == "complete":
 
             """This is the reset code. It deletes self.form, raises the level by 1, and then re-makes self.form"""
             self.form.destroy()
-            del self.form
-            
+
             self.level+=1
             self.level_in_world+=1
             self.world_file.update_intensities(self.level)
-            
-            self.form=Formation(player=self.player, 
-                available_char=self.world_file.imports,
-                level=self.level, 
-                    file=self.world_file) 
 
-                 
+            self.form.__init__(player=self.player,
+                available_char=self.world_file.imports,
+                level=self.level,
+                file=self.world_file)
+
+
         # except AttributeError: pass
 
     def advance_world(self):
         self.world_num+=1
-
         self.world_num_looped = self.world_num - ( len(self.worldOrder) * ((self.world_num-1)//len(self.worldOrder)) )
 
         # print(str(self.world_num),"|",str(self.world_num_looped))
 
 
-        
+
 """STATES###############################################################"""
 
 """TITLE ASSETS--------------------"""
@@ -903,19 +888,19 @@ def title():
         window.blit(ui.title_bg_logo[frame], (225 - (ui.title_bg_logo[frame].get_width() / 2), 25))
 
         #"START," "OPTIONS," and "QUIT" only appear during the first part of the title menu
-        if index == 1: 
+        if index == 1:
             window.blit(ui.START[1], (150, 275))
-        else: 
+        else:
             window.blit(ui.START[0], (150, 275))
 
-        if index == 2: 
+        if index == 2:
             window.blit(ui.OPTIONS[1], (150, 375))
-        else: 
+        else:
             window.blit(ui.OPTIONS[0], (150, 375))
 
-        if index == 3: 
+        if index == 3:
             window.blit(ui.QUIT[1], (150, 475))
-        else: 
+        else:
             window.blit(ui.QUIT[0], (150, 475))
 
         pygame.display.update() #TEST ENABLE
@@ -951,7 +936,7 @@ def title():
                 #This code checks for an enter press.
                 #It will always lock out the enter button if it is being held down. It waits until enter is released to register again.
                 if event.key == pygame.K_j:
-                    sounds.select.play()
+                    sounds.sounds["select.mp3"].play()
 
                     #starting gameplay, returns a value telling main to use gameplay
                     if index == 1: sounds.stop_song(); return "start"
@@ -960,23 +945,23 @@ def title():
                     elif index == 2: sounds.stop_song(); return "options"
 
                     # If you pick quit, or something else by some chance, the game will quit.
-                    else:sounds.select.play();time.sleep(0.5);run = False;exit()
+                    else:sounds.sounds["select.mp3"].play();time.sleep(0.5);run = False;exit()
 
 
                 #Escape press for quitting game
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_k:
-                    sounds.back.play()
+                    sounds.sounds["back.mp3"].play()
                     exit()
 
 
                 #Item selection; changes index
                 if event.key == pygame.K_w:
                     if index > 1: index -=1
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
 
                 if event.key == pygame.K_s:
                     if index < 3: index +=1
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
 
 
 
@@ -989,7 +974,7 @@ def options():
 
         return surface
 
-    current_song = sounds.play_nonmain_song("pause.mp3")
+    sounds.play_nonmain_song("pause.mp3")
 
     # Reads a dictionary, with the index name and the values associated with it
     settings_keys_images = {}
@@ -1046,21 +1031,21 @@ def options():
             if event.type == pygame.KEYDOWN:
 
                 if event.key == pygame.K_k:
-                    sounds.back.play()
+                    sounds.sounds["back.mp3"].play()
                     # writing the settings
-                    current_song.stop()
+                    sounds.ost["pause.mp3"].stop()
                     return "title"
 
                 if event.key == pygame.K_s and index < (len(settings) - 1):
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
                     index += 1
                     # print(index)
                 if event.key == pygame.K_w and index > 0:
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
                     index -= 1
                     # print(index)
                 if event.key == pygame.K_j:
-                    sounds.select.play()
+                    sounds.sounds["select.mp3"].play()
                     # list(settings)[index] is the key name
                     key_index = list(settings)[index]
                     if settings[key_index][1] == "onoff":
@@ -1074,19 +1059,19 @@ def options():
                         elif settings[key_index][0]:
                             settings[key_index][0] = False
                     else:
-                        sounds.denied.play()
+                        sounds.sounds["denied.mp3"].play()
                 if event.key == pygame.K_a:
-                    sounds.select.play()
+                    sounds.sounds["select.mp3"].play()
                     # list(settings)[index] is the key name
                     key_index = list(settings)[index]
                     if settings[key_index][1] == "slider" and settings[key_index][0] > 0:
                         settings[key_index][0] -= 0.05
                         settings[key_index][0] = round(settings[key_index][0], 2)
                     else:
-                        sounds.denied.play()
+                        sounds.sounds["denied.mp3"].play()
                     # print(values[index])
                 if event.key == pygame.K_d:
-                    sounds.select.play()
+                    sounds.sounds["select.mp3"].play()
                     # list(settings)[index] is the key name
                     key_index = list(settings)[index]
 
@@ -1098,13 +1083,13 @@ def options():
                         settings[key_index][0] += 0.05
                         settings[key_index][0] = round(settings[key_index][0], 2)
                     else:
-                        sounds.denied.play()
+                        sounds.sounds["denied.mp3"].play()
 
                 if event.key == pygame.K_p:
-                    read_apply_settings(settings, current_song)
+                    read_apply_settings(settings, sounds.ost["pause.mp3"])
                     with open("./assets/settings.txt", "w+") as data:
                         data.write(str(settings))
-                #only redraws the window when a setting is changed. No FPS needed.    
+                #only redraws the window when a setting is changed. No FPS needed.
                 redraw_window()
 
 
@@ -1118,14 +1103,14 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
     got it?
     """
 
-    current_song=sounds.play_nonmain_song('pause.mp3')
+    sounds.play_nonmain_song('pause.mp3')
 
 
     #sets the values
     fps=60;run=True;clock = pygame.time.Clock();index = 1
     pause_start = time.time();graphic_start = time.time()
     graphic_frame = 1
-    sounds.select2.play()
+    sounds.sounds["select2.mp3"].play()
 
     #updates every graphic onscreen
     def display_update():
@@ -1159,31 +1144,31 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 
             if event == pygame.QUIT:
                 sounds.stop_song()
-                sounds.select2.play()
+                sounds.sounds["select2.mp3"].play()
                 run = False
             if event.type == pygame.KEYDOWN:
 
                 #UI
                 if event.key == pygame.K_w:
                     if index > 1: index -= 1
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
                 if event.key == pygame.K_s:
                     if index < 3: index += 1
-                    sounds.scroll.play()
+                    sounds.sounds["scroll.mp3"].play()
                 if event.key == pygame.K_j:
-                    sounds.select2.play()
+                    sounds.sounds["select2.mp3"].play()
                     if index == 1:
-                        current_song.stop()
+                        sounds.ost["pause.mp3"].stop()
                         run = False
                     if index == 2:
-                        current_song.stop()
+                        sounds.ost["pause.mp3"].stop()
                         options()
-                        current_song.play()
+                        sounds.play_nonmain_song('pause.mp3')
                     if index == 3:
-                        current_song.stop()
+                        sounds.ost["pause.mp3"].stop()
                         return "title"
 
-    current_song.stop();del current_song
+    sounds.ost["pause.mp3"].stop()
     return time_passed
 
 
@@ -1242,7 +1227,7 @@ def play(
 
 
         # FINISHING WITH AN UPDATE STATEMENT
-        if graphical:pygame.display.update() 
+        if graphical:pygame.display.update()
 
 
     def update_sprites():
@@ -1275,9 +1260,9 @@ def play(
         level_class.update()
 
         #game over initialization
-        if player.playerdied: 
+        if player.playerdied:
             exit_state()
-            return "title"  
+            return "title"
 
 
 
@@ -1296,7 +1281,7 @@ def play(
                 # pause code
                 if event.key == pygame.K_i:
                     # freezes everything and opens the pause menu
-                    player.reset_movement() 
+                    player.reset_movement()
 
                     pygame.mixer.music.pause()
 
@@ -1370,4 +1355,4 @@ while True:
         print("invalid state entry")
         exit()
 
- 
+
