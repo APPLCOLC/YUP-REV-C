@@ -253,7 +253,6 @@ class Sounds:
 
     def __init__(self):
         ###################SOUNDS####################
-        self.ostList=[];self.soundList=[]
 
         self.sounds = {}
         self.ost = {}
@@ -286,8 +285,8 @@ class Sounds:
 
 
     def adjust_sounds(self, volume):
-        for item in self.soundList:
-            item.set_volume(volume)
+        for sound in self.sounds.values():
+            sound.set_volume(volume)
         self.apply_offsets()
         # death.set_volume(death.get_volume() / 2)
 
@@ -304,23 +303,23 @@ class Sounds:
 
 
     def apply_offsets(self):
-
-        for k,v in self.offsetSounds.items():
-
-            volume=self.soundList[self.soundList.index(k)].get_volume()*v
-
-            self.soundList[self.soundList.index(k)].set_volume(volume)
+        pass
+        # for k,v in self.offsetSounds.items():
+        #
+        #     volume=self.soundList[self.soundList.index(k)].get_volume()*v
+        #
+        #     self.soundList[self.soundList.index(k)].set_volume(volume)
 
 sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this is what everything refers to
 
-for item in os.listdir("./assets/sounds/"):
-    sounds.sounds[str(item)] = pygame.mixer.Sound("./assets/sounds/" + str(item))
-for item in os.listdir("./assets/ost/"):
-    if ".mp3" not in item:
+for sound in os.listdir("./assets/sounds/"):
+    sounds.sounds[str(sound)] = pygame.mixer.Sound("./assets/sounds/" + str(sound))
+for song in os.listdir("./assets/ost/"):
+    if ".mp3" not in song:
         continue
     else:
-        sounds.ost[str(item)] = pygame.mixer.Sound("./assets/ost/" + str(item))
-sounds.ost.clear()
+        sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
+
 
 # print(sounds.container)
 
@@ -531,7 +530,11 @@ class Formation:
 
 
         #FORMATION SIZE
-        self.update_size()
+        # SPAWN*LIST* SIZE
+        self.formation_size[1] = len(self.spawn_list)  # vertical size is figured out
+        for row in self.spawn_list:
+            if len(self.spawn_list[row]) > self.formation_size[0]:  # horizontal size is the longest row
+                self.formation_size[0] = len(self.spawn_list[row])
 
         #CENTERING FORMATION BASED ON SIZE
         self.pos[0] = 225-(self.formation_size[0]*self.file.char_distance_x/2)
@@ -570,8 +573,10 @@ class Formation:
         #checking if time has passed
         self.current_frame += 1
 
-        if self.current_frame >= 6:
-
+        if self.current_frame >= 3:
+            
+            # index = random.randint(0,len(self.spawn_))
+            
             #resetting timer
             self.current_frame = 0
 
@@ -591,15 +596,11 @@ class Formation:
                 #adds a character to the formation
                 self.spawned_formation[self.spawn_list_indexes[0][0]].append(
                     loaded_characters[self.spawn_list[self.spawn_list_indexes[0][0]][self.spawn_list_indexes[0][1]]].Char(
-                            allsprites=universal_group,
-                            bullets=bullet_group,
-                            player=self.player,
-                            enemies=enemy_group,
-                            formationPos=self.pos,
-                            offset=((self.spawn_list_indexes[0][1] * self.file.char_distance_x),
-                                (self.spawn_list_indexes[0][0] * self.file.char_distance_y))
-                                )
-                )
+                        args={ "groups": {"universal":universal_group,"bullet":bullet_group,"enemy":enemy_group},
+                               "player": self.player,
+                               "formation_position": self.pos,
+                               "offset":((self.spawn_list_indexes[0][1] * self.file.char_distance_x),(self.spawn_list_indexes[0][0] * self.file.char_distance_y))
+                            }))
 
             #ignoring emtpy enemy spaces -
             except KeyError:
@@ -730,11 +731,11 @@ class Formation:
         return spawn_list
 
     def update_size(self):
-        #FORMATION SIZE
-        self.formation_size[1] = len(self.spawn_list) #vertical size is figured out
-        for row in self.spawn_list:
-            if len(self.spawn_list[row]) > self.formation_size[0]: #horizontal size is the longest row
-                self.formation_size[0] = len(self.spawn_list[row])
+        #UPDATING SIZE BASED OFF SPAWN
+        self.formation_size[1] = len(self.spawned_formation)  # vertical size is figured out
+        for row in self.spawned_formation:
+            if len(row) > self.formation_size[0]:  # horizontal size is the longest row
+                self.formation_size[0] = len(row)
 
     def remove_dead(self):
         #deleting dead characters
@@ -743,14 +744,12 @@ class Formation:
                 if self.spawned_formation[row][column].state == "dead":
                     self.spawned_formation[row].pop(column)
                 break
-        del row,column
 
         #deleting empty rows
         for row in range(len(self.spawned_formation)):
             if len(self.spawned_formation[row])==0:
                 self.spawned_formation.pop(row)
                 break
-        del row
 
         #changing state to "complete" if there are no rows
         if len(self.spawned_formation) == 0:
@@ -1221,7 +1220,7 @@ def play(
         universal_group.draw(window)
 
         # UI
-        bullet_shared.display_bullet(window, (0, 0), player.currentweapon, loaded_bullets)
+        bullet_shared.display_bullet(window, (0, 0), player.current_weapon, loaded_bullets)
         player.display_health(window, (30, 0))
         display_score(player.score, (450, 0), window)
 
@@ -1260,7 +1259,7 @@ def play(
         level_class.update()
 
         #game over initialization
-        if player.playerdied:
+        if player.player_died:
             exit_state()
             return "title"
 

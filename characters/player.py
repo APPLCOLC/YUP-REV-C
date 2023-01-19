@@ -1,4 +1,4 @@
-import pygame,time
+import pygame
 from bullets.shared import *
 
 
@@ -51,14 +51,15 @@ class YUPANIMATIONS():
 
 class Player(pygame.sprite.Sprite):
     # Player, of course, is the main character that you control and play as.
-    def __init__(self, HurtSprites ,bulletsprites,allsprites,sounds, loaded_bullets):
-        self.frame = 0
-        self.animStart = time.time()
-        self.stateStart = time.time()
-        self.iStart = time.time()
+    def __init__(self, enemy_group, bullet_group, universal_group, sounds, loaded_bullets):
+        #frame counters
+        self.animation_frame = 0
+        self.animation_frame_counter = 0
+        self.state_timer = 0
+        self.invincible_timer = 0
 
-        # All of the .image code has to do with the image that the character is using.
-        # This will change later on depending on the frame of the spritesheet. This is just a placeholder.
+        # All the .image code has to do with the image that the character is using.
+        # This will change later on depending on the frame of the sprite sheet. This is just a placeholder.
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((30, 30))
         self.image = YUPANIMATIONS.idle[0]
@@ -79,9 +80,9 @@ class Player(pygame.sprite.Sprite):
         self.shoot_auto = False
 
         #code for registering the many sprite classes
-        self.HurtSprites = HurtSprites
-        self.bulletsprites = bulletsprites
-        self.allsprites = allsprites
+        self.enemy_group = enemy_group
+        self.bullet_group = bullet_group
+        self.universal_group = universal_group
 
         #sound init
         self.sounds=sounds
@@ -89,77 +90,91 @@ class Player(pygame.sprite.Sprite):
         #UI elements
         self.lives = 3
         self.score = 0
-        self.playerdied = False
+        self.player_died = False
         self.invincible = False
-        self.invenTrans=False
-        self.animState = "idle"
+        self.invincible_transparent=False
+        self.animation_state = "idle"
         self.deathCoord = (0,0)
 
         #inventory elements
-        self.invenIndex = 0
+        self.inventory_index = 0
         self.shield_meter=100
         self.inventory = ["default","cheat"]
-        self.currentweapon = self.inventory[self.invenIndex]
+        self.current_weapon = self.inventory[self.inventory_index]
         self.loaded_bullets=loaded_bullets
 
     def update(self):
-        if not self.playerdied:
-            self.stateManager()
+        if not self.player_died:
+            self.state_manager()
             self.collision()
             if self.shoot_auto:self.autoshoot()
         self.animation()
 
-    def stateManager(self):
-        animStateEnd = time.time()
-        if animStateEnd - self.stateStart >= 0.5:
-            self.stateStart = time.time()
-            if self.animState == "hurt":self.animState = "idle"
-            if self.animState == "shoot":self.animState = "idle"
-        iStateEnd=time.time()
-        if iStateEnd-self.iStart >= 2.5: self.iStart=time.time();self.invincible = False
+    def state_manager(self):
+        self.state_timer += 1
+        if self.state_timer >= 30:
+            self.state_timer = 0
+            if self.animation_state == "hurt":
+                self.animation_state = "idle"
+            if self.animation_state == "shoot":
+                self.animation_state = "idle"
+
+        self.invincible_timer += 1
+        if self.invincible_timer >= 180:
+            self.invincible_timer = 0
+            self.invincible = False
         
     def animation(self):
-        animEnd = time.time()
-        if not self.playerdied:
-            if self.animState == "idle":
-                if self.frame > 2:
-                    self.frame = 0
-                if animEnd - self.animStart >= 0.1:
-                    self.animStart = time.time()
-                    self.frame += 1
-                    if self.frame > 2:
-                        self.frame = 0
-                self.image = YUPANIMATIONS.idle[self.frame]
-            if self.animState == "shoot":
-                if self.frame > 2:
-                    self.frame = 0
-                if animEnd - self.animStart >= 0.1:
-                    self.animStart = time.time()
-                    self.frame += 1
-                    if self.frame > 5:
-                        self.frame = 0
-                self.image = YUPANIMATIONS.shoot[self.frame]
-            if self.animState == "hurt" or self.invincible:
-                if self.frame > 2:
-                    self.frame = 0
-                if animEnd - self.animStart >= 0.05:
-                    self.animStart = time.time()
-                    self.frame += 1
-                    if self.frame > 2:
-                        self.frame = 0
-                self.image = YUPANIMATIONS.hurt[self.frame]
+        self.animation_frame_counter += 1
+        if not self.player_died:
+            #idle frame counting
+            if self.animation_state == "idle":
+                #preventing out of bounds index
+                if self.animation_frame > 2:
+                    self.animation_frame = 0
+                #changing the idle animation frame
+                if self.animation_frame_counter >= 6:
+                    self.animation_frame_counter = 0
+                    self.animation_frame += 1
+                    if self.animation_frame > 2:
+                        self.animation_frame = 0
+                self.image = YUPANIMATIONS.idle[self.animation_frame]
+            #shoot animation counting
+            if self.animation_state == "shoot":
+                #preventing out of bounds index
+                if self.animation_frame > 2:
+                    self.animation_frame = 0
+                if self.animation_frame_counter >= 6:
+                    #changing shoot animation frame
+                    self.animation_frame_counter = 0
+                    self.animation_frame += 1
+                    if self.animation_frame > 5:
+                        self.animation_frame = 0
+                self.image = YUPANIMATIONS.shoot[self.animation_frame]
+            #hurt animation counting
+            if self.animation_state == "hurt" or self.invincible:
+                #preventing out of bounds index
+                if self.animation_frame > 2:
+                    self.animation_frame = 0
+                if self.animation_frame_counter >= 1:
+                    self.animation_frame_counter = 0
+                    self.animation_frame += 1
+                    if self.animation_frame > 2:
+                        self.animation_frame = 0
+                self.image = YUPANIMATIONS.hurt[self.animation_frame]
         else:
-            if animEnd - self.animStart >= 0.05:
-                self.animStart = time.time()
-                self.frame += 1
-                if self.frame > 2:
-                    self.frame = 0
-            self.image = YUPANIMATIONS.dead[self.frame]
+            #dead animation
+            if self.animation_frame_counter >= 1:
+                self.animation_frame_counter = 0
+                self.animation_frame += 1
+                if self.animation_frame > 2:
+                    self.animation_frame = 0
+            self.image = YUPANIMATIONS.dead[self.animation_frame]
 
-        if self.invincible: self.invenTrans=~self.invenTrans
-        elif not self.invincible or self.playerdied: self.invenTrans = False
-        else:self.invenTrans=False
-        if self.invenTrans: self.image.set_alpha(50)
+        if self.invincible: self.invincible_transparent=~self.invincible_transparent
+        elif not self.invincible or self.player_died: self.invincible_transparent = False
+        else:self.invincible_transparent=False
+        if self.invincible_transparent: self.image.set_alpha(50)
         else:self.image.set_alpha(255)
 
     def controls(self, event):
@@ -171,61 +186,62 @@ class Player(pygame.sprite.Sprite):
             # There are 2 variables that get set when a key is being pressed down: player_[direction] and moving_[direction].
             # For example, when the left key is pressed, player_x gets changed by -5 and moving_left becomes True
             if event.key == pygame.K_LEFT or event.key==pygame.K_a:
-                self.player_x = -6
+                self.player_x = -5
                 self.moving_left = True
             if event.key == pygame.K_RIGHT or event.key==pygame.K_d:
-                self.player_x = 6
+                self.player_x = 5
                 self.moving_right = True
             if event.key == pygame.K_UP or event.key==pygame.K_w:
-                self.player_y = -6
+                self.player_y = -5
                 self.moving_up = True
             if event.key == pygame.K_DOWN  or event.key==pygame.K_s:
-                self.player_y = 6
+                self.player_y = 5
                 self.moving_down = True
             if event.key == pygame.K_n: self.shoot_auto = ~self.shoot_auto
 
             # Space simply creates a bullet, which gets placed where YUP is.
-            if event.key == pygame.K_j and self.playerdied == False:
-                self.animState = "shoot";self.stateStart=time.time()
+            if event.key == pygame.K_j and self.player_died == False:
+                self.animation_state = "shoot"
+                self.state_timer=0
                 shoot(
                     loaded=self.loaded_bullets,
-                    bullet_name=self.inventory[self.invenIndex],
+                    bullet_name=self.inventory[self.inventory_index],
                     coordinates=self.rect.center,
-                    all_sprites=self.allsprites,
-                    enemy_sprites=self.HurtSprites,
-                    bullet_sprites=self.bulletsprites,
+                    all_sprites=self.universal_group,
+                    enemy_sprites=self.enemy_group,
+                    bullet_sprites=self.bullet_group,
                 )
 
         # This is the code that checks for a key being released.
         if event.type == pygame.KEYUP:
-            # For all of the key-releases for the arrow keys:
+            # For all the key-releases for the arrow keys:
             # Moving_[direction] becomes marked as false.
             # Then, after being marked as false, it will then check and see if the opposite direction's key is being pressed.
             # If it is not, it will fully stop the character.
             if event.key == pygame.K_LEFT or event.key==pygame.K_a:
                 self.moving_left = False
-                if self.moving_right == False:
+                if self.moving_right is False:
                     self.player_x = 0
                 else:
                     self.player_x = 6
 
             if event.key == pygame.K_RIGHT or event.key==pygame.K_d:
                 self.moving_right = False
-                if self.moving_left == False:
+                if self.moving_left is False:
                     self.player_x = 0
                 else:
                     self.player_x = -6
 
             if event.key == pygame.K_UP or event.key==pygame.K_w:
                 self.moving_up = False
-                if self.moving_down == False:
+                if self.moving_down is False:
                     self.player_y = 0
                 else:
                     self.player_y = 6
 
             if event.key == pygame.K_DOWN or event.key==pygame.K_s:
                 self.moving_down = False
-                if self.moving_up == False:
+                if self.moving_up is False:
                     self.player_y = 0
                 else:
                     self.player_y = -6
@@ -255,17 +271,19 @@ class Player(pygame.sprite.Sprite):
         # YUP COLLISION WITH ENEMIES
         #hitbox is needed for collision, so hitbox becomes rect\
 
-        Hit = pygame.sprite.spritecollide(self, self.HurtSprites, False, collided=pygame.sprite.collide_mask)
+        Hit = pygame.sprite.spritecollide(self, self.enemy_group, False, collided=pygame.sprite.collide_mask)
         if not self.invincible:
             for item in Hit:
-                self.animState = "hurt";self.stateStart=time.time();self.frame=0
+                self.animation_state = "hurt"
+                self.state_timer = 0
+                self.animation_frame=0
                 self.lives -= 1;self.invincible=True
                 self.sounds.sounds["ouch.mp3"].play()
                 try: item.health-=1
                 except: pass
         if self.lives <= 0:
-            self.animState = "dead"
-            self.playerdied = True
+            self.animation_state = "dead"
+            self.player_died = True
             self.sounds.sounds["death.mp3"].play()
             self.image.set_alpha(255)
             self.deathCoord = (self.rect.center)
@@ -273,29 +291,29 @@ class Player(pygame.sprite.Sprite):
     def bulletmanager(self,event):
         # print(self.invenIndex)
         try:
-            self.currentweapon = self.inventory[self.invenIndex]
+            self.current_weapon = self.inventory[self.inventory_index]
         except Exception as e:
-            self.invenIndex = 0
+            self.inventory_index = 0
             # print(e)
 
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_k and self.playerdied == False:
-                self.invenIndex += 1
+            if event.key == pygame.K_k and self.player_died == False:
+                self.inventory_index += 1
                 self.sounds.sounds["select.mp3"].play()
     def autoshoot(self):
         shoot(
             loaded=self.loaded_bullets,
-            bullet_name=self.inventory[self.invenIndex],
+            bullet_name=self.inventory[self.inventory_index],
             coordinates=self.rect.center,
-            all_sprites=self.allsprites,
-            enemy_sprites=self.HurtSprites,
-            bullet_sprites=self.bulletsprites,
+            all_sprites=self.universal_group,
+            enemy_sprites=self.enemy_group,
+            bullet_sprites=self.bullet_group,
         )
 
     # This is the code loaded as a temporary save whenever you exit states.
     # This takes your inventory, your health, your coordinates, etc.
     def pack_data(self):
-        data = {"lives": self.lives, "inventory": self.inventory, "inventory index": self.invenIndex,
+        data = {"lives": self.lives, "inventory": self.inventory, "inventory index": self.inventory_index,
                 "score": self.score, "coord": (self.rect.x, self.rect.y)}
         return data
     def reset_movement(self):
@@ -303,7 +321,7 @@ class Player(pygame.sprite.Sprite):
         self.player_x = self.player_y = 0
     def load_data(self,dataDict):
         self.inventory = dataDict["inventory"]
-        self.invenIndex = dataDict["inventory index"]
+        self.inventory_index = dataDict["inventory index"]
         self.lives = dataDict["lives"]
         self.score = dataDict["score"]
         self.rect.x = dataDict["coord"][0]

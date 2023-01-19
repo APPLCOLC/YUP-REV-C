@@ -1,4 +1,4 @@
-import pygame, time
+import pygame
 from characters import shared
 
 
@@ -31,7 +31,7 @@ class img():
     for i in range(len(freefall)): freefall[i]=pygame.transform.scale(freefall[i],(40,40)).convert_alpha()
     
 class Char(pygame.sprite.Sprite):
-    def __init__(self, allsprites, bullets, player, enemies, formationPos=(0, 0), offset=(0, 0)):
+    def __init__(self,args :dict):
 
         # SELF-MADE CODE
         self.state = "enter"  # current behavior pattern for characters
@@ -43,9 +43,9 @@ class Char(pygame.sprite.Sprite):
         self.RCM = False  # RCM = Return Condition Met.
         # This is only used in attack state.
         # This is to check if the character should return or not.
-        self.offset = offset  # offset that is used with the formation.
+        self.offset = args['offset']  # offset that is used with the formation.
         # This never changes.
-        self.formationPos = formationPos  # position that the entire formation follows.
+        self.formationPos = args['formation_position']  # position that the entire formation follows.
 
         self.idlePos = [(self.formationPos[0] + self.offset[0]), (self.formationPos[1] + self.offset[
             1])]  # current position, typically calculated with formationPos and offsets.
@@ -55,7 +55,7 @@ class Char(pygame.sprite.Sprite):
         # This is only used in attack state.
 
         # TIMERS
-        self.frameStart = time.time()
+        self.animation_frame_counter = 0
 
         # STICKMAN-SPECIFIC CODE
         self.locked_in = False
@@ -65,11 +65,12 @@ class Char(pygame.sprite.Sprite):
 
         # PYGAME-SPECIFIC CODE
         pygame.sprite.Sprite.__init__(self)
-        self.frame = 0
-        self.image = img.freefall[self.frame]
+        self.animation_frame = 0
+        self.image = img.freefall[self.animation_frame]
         self.rect = self.image.get_rect()
-        self.bullets, self.allsprites, self.player, self.enemies = bullets, allsprites, player, enemies
         self.rect.y = -100  # entrance state starting position
+        self.groups = args['groups']
+        self.player = args['player']
 
     def update(self):
         self.stateUpdate()
@@ -82,28 +83,28 @@ class Char(pygame.sprite.Sprite):
 
     def animUpdate(self):
         # FRAME UPDATING
-        end = time.time()
-        if end - self.frameStart >= 0.1:  # updates frame if enough time has passed
-            self.frameStart = time.time()
-            self.frame += 1
+        self.animation_frame_counter += 1
+        if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+            self.animation_frame_counter = 0
+            self.animation_frame += 1
 
             # IDLE IMAGE UPDATE
             if self.state == "idle":
                 # RESETTING FRAME
-                if self.frame >= len(img.idle) - 1: self.frame = 0
+                if self.animation_frame >= len(img.idle) - 1: self.animation_frame = 0
                 # SETTING IMAGE
-                self.image = img.idle[self.frame]
+                self.image = img.idle[self.animation_frame]
             # ATTACKING IMAGE UPDATE
             elif self.state == "attack" or self.state == "enter":
                 # RESETTING FRAME
-                if self.frame >= len(img.freefall) - 1: self.frame = 0
+                if self.animation_frame >= len(img.freefall) - 1: self.animation_frame = 0
                 # SETTING IMAGE
-                self.image = img.freefall[self.frame]
+                self.image = img.freefall[self.animation_frame]
                 # FLIPPING IMAGE BASED ON DIRECTION
                 if self.direction == "right": self.image = pygame.transform.flip(self.image, True, False)
             elif self.state == "prep":
-                if self.frame >= len(img.prep) - 1: self.frame = 0 #this SHOULD NOT OCCUR since at this point he would have jumped
-                self.image = img.prep[self.frame]
+                if self.animation_frame >= len(img.prep) - 1: self.animation_frame = 0 #this SHOULD NOT OCCUR since at this point he would have jumped
+                self.image = img.prep[self.animation_frame]
 
         # if self.state == "enter":
         #     self.image = pygame.transform.scale(self.image, (20, 75))  # stretching image
@@ -141,18 +142,19 @@ class Char(pygame.sprite.Sprite):
     def state_prep(self):
         self.rect.center = self.idlePos
         #Creating variables to make the jump fine
-        if self.frame >= len(img.prep) - 2:
-            self.frame=0
+        if self.animation_frame >= len(img.prep) - 2:
+            self.animation_frame=0
             self.locked_in=True
             self.state="attack"
             #VISUAL EXPLOSION
-            explosion=shared.dieBoom(self.rect.center,(50,50));self.allsprites.add(explosion)
+            explosion=shared.dieBoom(self.rect.center,(50,50))
+            self.groups["universal"].add(explosion)
         self.y_momentum=-5
 
 
     def state_attack(self):
         if not self.locked_in:
-            self.frame=0
+            self.animation_frame=0
             self.state="prep"
             return
 
@@ -183,13 +185,13 @@ class Char(pygame.sprite.Sprite):
         # please note that, with collision, there is no registration for touching YUP
         # this is because YUP handles collision with enemies herself
         # however, the enemies have to register how to collide with bullets
-        BulletHit = pygame.sprite.spritecollide(self, self.bullets, False)
-        for item in BulletHit:
+        bullet_hit = pygame.sprite.spritecollide(self, self.groups["bullet"], False)
+        for item in bullet_hit:
             item.health -= 1
             self.health -= 1
             if self.health < 1:
                 die = shared.diePop(self.rect.center)
-                self.allsprites.add(die)
+                self.groups["universal"].add(die)
                 self.player.score += self.scorevalue
                 self.state = "dead"
                 self.kill()

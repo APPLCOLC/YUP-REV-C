@@ -1,24 +1,11 @@
-list written: 1/8/2023
-list completed: 1/18/23
+list written: 1/19/23
+list completed: N/A
 
-rewrite BG (Completed 1/13/23)
-rewrite Level (Completed 1/18/23)
-rewrite formation (Completed 1/16/23)
-
-move bullets file from modules to a "bullets" folder (completed 1/11/23)
--write each bullet like the characters are written
--this is so bullets can be added on a whim without hard code
--similar to characters
-
-preload all backgrounds first (Completed 1/10/23)
---it will be a bitch to read, but it will be automatically generated and not meant to be read
---a dictionary named "dir", with each key being the folder name, and the value being all the images within the folder in a list
-import all characters in all folders first (Completed 1/10/23)
---this is fairly easy, as all you need to do is make a dictionary of all the imports
---as it is a dictionary, they will be read the same
-import all bullets first (completed 1/12/23)
---make a bullets dictionary, like the characters
-preload all levels first (Completed 1/10/23)
---self-explanatory; same as others
-
-find memory leak if rewrites do not fix issue (not completed)
+-Change character entrance states
+--start with nope, move onto others later
+--make them follow a formula to make them jump on formulaic
+--make them shoot as they go on, so it's more of a distraction
+-Change character animation states (completed 1/19/23)
+--STOP USING THE TIME MODULE
+-Change character arguments
+--make it a dictionary, so unneeded arguments can be passed on without issue

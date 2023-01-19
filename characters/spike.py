@@ -1,4 +1,4 @@
-import pygame,time
+import pygame
 from characters import shared
 
 class img():
@@ -40,7 +40,7 @@ class SPIKEBULLETS(pygame.sprite.Sprite):
 
         if self.rect.right <= 0 or self.rect.left >= 450 or self.rect.top <= 0 or self.rect.bottom >= 600: self.kill()
 class Char(pygame.sprite.Sprite):
-    def __init__(self,allsprites,bullets,player,enemies,formationPos=(0,0), offset=(0,0)):
+    def __init__(self,args :dict):
         
         #SELF-MADE CODE
         self.state="enter" #current behavior pattern for characters
@@ -51,9 +51,9 @@ class Char(pygame.sprite.Sprite):
                       #Almost always 1.
         self.scorevalue=100 #Score given to player
 
-        self.offset = offset #offset that is used with the formation.
+        self.offset = args["offset"] #offset that is used with the formation.
                             #This never changes.
-        self.formationPos = formationPos #position that the entire formation follows.
+        self.formationPos = args["formation_position"] #position that the entire formation follows.
 
         self.idlePos = [(self.formationPos[0]+self.offset[0]),(self.formationPos[1]+self.offset[1])] # current position, typically calculated with formationPos and offsets.
                          # This is only not the case when you are in the attacking state.
@@ -62,7 +62,7 @@ class Char(pygame.sprite.Sprite):
                                #This is only used in attack state.
 
         #TIMERS
-        self.frameStart=time.time()
+        self.animation_frame_counter=0
         # self.whenToShoot=5
         
         #SPIKE-SPECIFIC CODE
@@ -74,9 +74,11 @@ class Char(pygame.sprite.Sprite):
 
         #PYGAME-SPECIFIC CODE
         pygame.sprite.Sprite.__init__(self)
-        self.frame=0;self.image = img.idle[self.frame]
+        self.animation_frame=0
+        self.image = img.idle[self.animation_frame]
         self.rect = self.image.get_rect()
-        self.bullets,self.allsprites,self.player,self.enemies=bullets,allsprites,player,enemies
+        self.groups = args["groups"]
+        self.player = args["player"]
         self.rect.y = -100 #entrance state starting position
 
     def update(self):
@@ -90,23 +92,23 @@ class Char(pygame.sprite.Sprite):
 
     def animUpdate(self):
         #FRAME UPDATING
-        end = time.time()
-        if end - self.frameStart >= 0.1:  # updates frame if enough time has passed
-            self.frameStart = time.time()
-            self.frame += 1
+        self.animation_frame_counter += 1
+        if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+            self.animation_frame_counter = 0
+            self.animation_frame += 1
 
             #IDLE IMAGE UPDATE
             if not self.shot:
                 #RESETTING FRAME
-                if self.frame >= len(img.idle) - 1: self.frame = 0
+                if self.animation_frame >= len(img.idle) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.idle[self.frame]
+                self.image = img.idle[self.animation_frame]
             #ATTACKING IMAGE UPDATE
             elif self.shot:
                 #RESETTING FRAME
-                if self.frame >= len(img.release) - 1: self.frame = 0
+                if self.animation_frame >= len(img.release) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.release[self.frame]
+                self.image = img.release[self.animation_frame]
 
         if self.state == "enter":
             self.image=pygame.transform.scale(self.image,(20,75)) #stretching image
@@ -166,21 +168,21 @@ class Char(pygame.sprite.Sprite):
     def shoot(self):
         for i in range(4):
             bullet=SPIKEBULLETS(i,self.rect.center)
-            self.allsprites.add(bullet)
-            self.enemies.add(bullet)
+            self.groups["universal"].add(bullet)
+            self.groups["enemy"].add(bullet)
     def state_die(self):pass
     # def movementUpdate(self): self.idlePos = [(self.formationPos[0] + self.offset[0]), (self.formationPos[1] + self.offset[1])];self.rect.center=self.idlePos
     def collisionUpdate(self):
         #please note that, with collision, there is no registration for touching YUP
         #this is because YUP handles collision with enemies herself
         #however, the enemies have to register how to collide with bullets
-        BulletHit = pygame.sprite.spritecollide(self, self.bullets, False)
-        for item in BulletHit:
+        bullet_hit = pygame.sprite.spritecollide(self, self.groups["bullet"], False)
+        for item in bullet_hit:
             item.health -= 1
             self.health -= 1
             if self.health < 1:
                 die = shared.diePop(self.rect.center)
-                self.allsprites.add(die)
+                self.groups["universal"].add(die)
                 self.player.score += self.scorevalue
                 self.state = "dead"
                 self.kill()

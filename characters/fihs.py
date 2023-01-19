@@ -1,4 +1,4 @@
-import pygame,time,random
+import pygame,random
 from characters import shared
 
 class img():
@@ -17,7 +17,7 @@ class img():
     for i in range(len(chomp)): chomp[i]=pygame.transform.scale(chomp[i],(40,40)).convert_alpha()
     
 class Char(pygame.sprite.Sprite):
-    def __init__(self,allsprites,bullets,player,enemies,formationPos=(0,0), offset=(0,0)):
+    def __init__(self,args :dict):
         
         #SELF-MADE CODE
         self.state="enter" #current behavior pattern for characters
@@ -29,9 +29,9 @@ class Char(pygame.sprite.Sprite):
         self.RCM=False #RCM = Return Condition Met.
                        #This is only used in attack state.
                        #This is to check if the character should return or not.
-        self.offset = offset #offset that is used with the formation.
+        self.offset = args['offset'] #offset that is used with the formation.
                             #This never changes.
-        self.formationPos = formationPos #position that the entire formation follows.
+        self.formationPos = args['formation_position'] #position that the entire formation follows.
 
         self.idlePos = [(self.formationPos[0]+self.offset[0]),(self.formationPos[1]+self.offset[1])] # current position, typically calculated with formationPos and offsets.
                          # This is only not the case when you are in the attacking state.
@@ -40,22 +40,23 @@ class Char(pygame.sprite.Sprite):
                                #This is only used in attack state.
 
         #TIMERS
-        self.frameStart=time.time()
+        self.animation_frame_counter=0
         self.shootCounter=0 #counter for WHEN the bullet should shoot
         self.whenToShoot=random.randint(45,60) #HOW OFTEN a character should SHOOT
         # self.whenToShoot=5
 
         #PIRAHNA-SPECIFIC CODE
-        self.player=player #THIS is to get positions for when the sprite is in attack state
+        self.player=args["player"] #THIS is to get positions for when the sprite is in attack state
         self.direction="right"
         self.y_momentum=0
         self.x_momentum=0
 
         #PYGAME-SPECIFIC CODE
         pygame.sprite.Sprite.__init__(self)
-        self.frame=0;self.image = img.chomp[self.frame]
+        self.animation_frame=0
+        self.image = img.chomp[self.animation_frame]
         self.rect = self.image.get_rect()
-        self.bullets,self.allsprites,self.player,self.enemies=bullets,allsprites,player,enemies
+        self.groups = args["groups"]
         self.rect.y = -100 #entrance state starting position
 
     def update(self):
@@ -69,23 +70,23 @@ class Char(pygame.sprite.Sprite):
 
     def animUpdate(self):
         #FRAME UPDATING
-        end = time.time()
-        if end - self.frameStart >= 0.1:  # updates frame if enough time has passed
-            self.frameStart = time.time()
-            self.frame += 1
+        self.animation_frame_counter += 1
+        if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+            self.animation_frame_counter = 0
+            self.animation_frame += 1
 
             #IDLE IMAGE UPDATE
             if self.state=="idle" or self.state=="enter":
                 #RESETTING FRAME
-                if self.frame >= len(img.idle) - 1: self.frame = 0
+                if self.animation_frame >= len(img.idle) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.idle[self.frame]
+                self.image = img.idle[self.animation_frame]
             #ATTACKING IMAGE UPDATE
             else:
                 #RESETTING FRAME
-                if self.frame >= len(img.chomp) - 1: self.frame = 0
+                if self.animation_frame >= len(img.chomp) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.chomp[self.frame]
+                self.image = img.chomp[self.animation_frame]
                 #FLIPPING IMAGE BASED ON DIRECTION
                 if self.direction=="left": self.image=pygame.transform.flip(self.image,True,False)
 
@@ -172,13 +173,13 @@ class Char(pygame.sprite.Sprite):
         #please note that, with collision, there is no registration for touching YUP
         #this is because YUP handles collision with enemies herself
         #however, the enemies have to register how to collide with bullets
-        BulletHit = pygame.sprite.spritecollide(self, self.bullets, False, collided=pygame.sprite.collide_mask)
-        for item in BulletHit:
+        bullet_hit = pygame.sprite.spritecollide(self, self.groups["bullet"], False, collided=pygame.sprite.collide_mask)
+        for item in bullet_hit:
             item.health -= 1
             self.health -= 1
             if self.health < 1:
                 die = shared.diePop(self.rect.center)
-                self.allsprites.add(die)
+                self.groups["universal"].add(die)
                 self.player.score += self.scorevalue
                 self.state = "dead"
                 self.kill()
@@ -189,9 +190,9 @@ class Char(pygame.sprite.Sprite):
     def hitboxSwap(self):pass
 
     def shoot(self):
-        bullet=shared.hurtBullet(self.rect.center,self.player.rect.x)
-        self.allsprites.add(bullet)
-        self.enemies.add(bullet)
+        bullet=shared.HurtBullet(self.rect.center, self.player.rect.x)
+        self.groups["universal"].add(bullet)
+        self.groups["enemy"].add(bullet)
                          
         
          

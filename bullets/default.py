@@ -14,7 +14,7 @@ class Bullet(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.health = 1
         self.image = img
-        self.image = pygame.transform.scale(self.image, (20, 20))
+        self.image = pygame.transform.scale(self.image, (15, 15))
 
         if sound is not None:
             sound.play()
@@ -26,7 +26,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
     #Every frame, the bullet travels 15 pixels and deletes itself if it goes out of bounds.
-        self.rect.y -= 25
+        self.rect.y -= 15
         if self.rect.top <= 0:
             self.kill()
         if self.health <= 0:

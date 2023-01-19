@@ -1,4 +1,4 @@
-import pygame,time,random
+import pygame,random
 from characters import shared
 
 class img():
@@ -12,7 +12,7 @@ class img():
     del idle1,idle2,idle3,idle4
 
 class Char(pygame.sprite.Sprite):
-    def __init__(self,allsprites,bullets,player,enemies,formationPos=(0,0), offset=(0,0)):
+    def __init__(self,args :dict):
         
         #SELF-MADE CODE
         self.state="enter" #current behavior pattern for characters
@@ -22,26 +22,28 @@ class Char(pygame.sprite.Sprite):
         self.health=1 #Health for characters.
                       #Almost always 1.
         self.scorevalue=20 #Score given to player
-        self.offset = offset #offset that is used with the formation.
+        self.offset = args["offset"] #offset that is used with the formation.
                             #This never changes.
-        self.formationPos = formationPos #position that the entire formation follows.
+        self.formationPos = args["formation_position"] #position that the entire formation follows.
 
         self.idlePos = [(self.formationPos[0]+self.offset[0]),(self.formationPos[1]+self.offset[1])] # current position, typically calculated with formationPos and offsets.
                          # This is only not the case when you are in the attacking state.
 
         #TIMERS
-        self.frameStart=time.time()
+        self.animation_frame_counter = 0
 
         #PYGAME-SPECIFIC CODE
         pygame.sprite.Sprite.__init__(self)
-        self.frame=0;self.image = img.idle[self.frame]
+        self.animation_frame=0
+        self.image = img.idle[self.animation_frame]
         self.rect = self.image.get_rect()
-        self.bullets,self.allsprites,self.player,self.enemies=bullets,allsprites,player,enemies
+        self.groups = args["groups"]
         self.rect.y = -100 #entrance state starting position
 
         #ZAPP-SPECIFIC CODE
         self.frames=0
         self.zapping=False
+        self.player = args ["player"]
 
     def update(self):
         self.stateUpdate()
@@ -54,11 +56,11 @@ class Char(pygame.sprite.Sprite):
 
     def animUpdate(self):
 
-        end=time.time()
+        self.animation_frame_counter += 1
 
-        if end-self.frameStart >= 0.1: #updates frame if enough time has passed
-            self.frameStart = time.time()
-            self.frame+=1
+        if self.animation_frame_counter >= 6: #updates frame if enough time has passed
+            self.animation_frame_counter = 0
+            self.animation_frame+=1
 
         if self.state == "enter":
             self.image=pygame.transform.scale(self.image,(50,100)) #stretching image
@@ -68,8 +70,8 @@ class Char(pygame.sprite.Sprite):
             # self.rect.x-=50
 
         else:
-            if self.frame >= len(img.idle) - 1: self.frame = 0  # resets frame if out-of-index
-            self.image = img.idle[self.frame]  # sets current image
+            if self.animation_frame >= len(img.idle) - 1: self.animation_frame = 0  # resets frame if out-of-index
+            self.image = img.idle[self.animation_frame]  # sets current image
 
     def stateUpdate(self):
         # except Exception as error:print(error)
@@ -122,13 +124,13 @@ class Char(pygame.sprite.Sprite):
         #please note that, with collision, there is no registration for touching YUP
         #this is because YUP handles collision with enemies herself
         #however, the enemies have to register how to collide with bullets
-        BulletHit = pygame.sprite.spritecollide(self, self.bullets, False)
-        for item in BulletHit:
+        bullet_hit = pygame.sprite.spritecollide(self, self.groups["bullet"], False)
+        for item in bullet_hit:
             item.health -= 1
             self.health -= 1
             if self.health < 1:
                 die = shared.diePop(self.rect.center)
-                self.allsprites.add(die)
+                self.groups["universal"].add(die)
                 self.player.score += self.scorevalue
                 self.state = "dead"
                 self.kill()

@@ -30,7 +30,7 @@ class data:
         self.level_length=50 #TEMPORARY, NORMALLY 10
 
         #SIZE values
-        self.char_distance_x=40
+        self.char_distance_x=50
         self.char_distance_y=40
 
         self.char_min_width=5
