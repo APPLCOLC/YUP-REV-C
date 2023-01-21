@@ -154,6 +154,7 @@ for item in os.listdir("./bullets/"):
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
 
+
 """UI IMAGES---"""
 class UiImages:
 
@@ -262,7 +263,12 @@ class Sounds:
 
     ###############FUNCTIONS###############-
 
-    def play_song(self,directory):
+    def play_song(self,song_name):
+        with open('./assets/settings.txt','r') as data:
+            vol=eval(data.read())['OST VOL'][0]
+        self.ost[str(song_name)].set_volume(vol)
+        pygame.mixer.Channel(0).play(self.ost[str(song_name)],loops=-1)
+        # self.ost[str(song_name)].play(loops=-1)
         # with open('./assets/settings.txt','r') as data:vol=eval(data.read())['OST VOL'][0]
         # pygame.mixer.music.set_volume(vol)
         # pygame.mixer.music.play(loops=10)
@@ -271,7 +277,7 @@ class Sounds:
 
     @staticmethod
     def stop_song():
-        pygame.mixer.music.stop()
+        pygame.mixer.Channel(0).stop()
 
     def play_nonmain_song(self,song):
         #This is specifically because if you replace the music file being played, in a menu for instance, it will not remember any song played before.
@@ -279,7 +285,7 @@ class Sounds:
         with open('./assets/settings.txt','r') as data:
             vol=eval(data.read())['OST VOL'][0]
         self.ost[song].set_volume(vol)
-        self.ost[song].play()
+        pygame.mixer.Channel(1).play(self.ost[song],loops=-1)
         return self.ost[song]
     #songs are easily stopped on their own and do not need a stop function
 
@@ -508,6 +514,8 @@ class BG:
 class Formation:
     def __init__(self, player, available_char, level, file=None):
 
+        # print("==============NEW FORMATION")
+
         #DEFINITIONS
         self.state="start" #level's state; "start","idle", and "complete"
         self.file=file #level's python file
@@ -599,7 +607,8 @@ class Formation:
                         args={ "groups": {"universal":universal_group,"bullet":bullet_group,"enemy":enemy_group},
                                "player": self.player,
                                "formation_position": self.pos,
-                               "offset":((self.spawn_list_indexes[0][1] * self.file.char_distance_x),(self.spawn_list_indexes[0][0] * self.file.char_distance_y))
+                               "offset":((self.spawn_list_indexes[0][1] * self.file.char_distance_x),(self.spawn_list_indexes[0][0] * self.file.char_distance_y)),
+                               "level":self.level
                             }))
 
             #ignoring emtpy enemy spaces -
@@ -1282,7 +1291,7 @@ def play(
                     # freezes everything and opens the pause menu
                     player.reset_movement()
 
-                    pygame.mixer.music.pause()
+                    pygame.mixer.Channel(0).pause()
 
                     time_paused =  pause(img=level_class.bg.dir[0])
 
@@ -1291,7 +1300,7 @@ def play(
                         exit_state()
                         return "title"  # Sends the character into "title state", removing every single bit of progress made.
 
-                    pygame.mixer.music.unpause()
+                    pygame.mixer.Channel(0).unpause()
 
 
             # PLAYER CONTROLS

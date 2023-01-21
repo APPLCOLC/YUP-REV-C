@@ -70,7 +70,7 @@ class data:
 
         
         self.manual_type=2 # [0 : no influence , 1 : random order , 2 : ordered] ; 0 and 2 will overwrite manual_influence.
-        self.manual_loop=False #this only counts of the type is 2.
+        self.manual_loop=True #this only counts of the type is 2.
         self.manual_influence=0  #<0 is no influence, >100 is all influence ; only applies to type 1
 
 

@@ -1,1 +1,1 @@
-{'MUTE': [False, 'onoff'], 'FULLSCREEN': [False, 'onoff'], 'FPS': [True, '3060'], 'OST VOL': [0.35, 'slider'], 'SOUND VOL': [0.9, 'slider']}
+{'MUTE': [False, 'onoff'], 'FULLSCREEN': [False, 'onoff'], 'FPS': [True, '3060'], 'OST VOL': [0.1, 'slider'], 'SOUND VOL': [0.3, 'slider']}

@@ -277,8 +277,8 @@ class Player(pygame.sprite.Sprite):
                 self.animation_state = "hurt"
                 self.state_timer = 0
                 self.animation_frame=0
-                self.lives -= 1;self.invincible=True
-                self.sounds.sounds["ouch.mp3"].play()
+                # self.lives -= 1;self.invincible=True
+                # self.sounds.sounds["ouch.mp3"].play()
                 try: item.health-=1
                 except: pass
         if self.lives <= 0:

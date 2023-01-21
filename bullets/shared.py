@@ -21,7 +21,8 @@ def shoot(loaded,bullet_name,coordinates,all_sprites,enemy_sprites,bullet_sprite
         
 
 def display_bullet(WIN,positionTuple,bullettype,loaded):
-    WIN.blit(pygame.transform.scale(loaded[bullettype].img,(25,25)),positionTuple)
+    pass
+    # WIN.blit(pygame.transform.scale(loaded[bullettype].image,(25,25)),positionTuple)
 
 
 

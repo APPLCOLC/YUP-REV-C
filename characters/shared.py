@@ -1,4 +1,4 @@
-import pygame
+import pygame,math
 
 #IMAGES
 class SHARECHAR():
@@ -63,15 +63,26 @@ class dieBoom(pygame.sprite.Sprite):
         self.rect=self.image.get_rect()
         self.rect.center=self.coordCENTER
 
-class HurtBullet(pygame.sprite.Sprite):
-    def __init__(self, pos=(0,0), aim_x=0):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.transform.scale(SHARECHAR.hurtBullet,(10,10))
-        self.rect = self.image.get_rect()
-        self.pos,self.aim= pos, aim_x #pos is the central bullet spawn position (tuple), aim is the position it aims towards (int - x)
-        self.rect.center=self.pos
-    def update(self):
-        self.rect.y+=7.5
-        self.rect.x+=(self.aim-self.pos[0])/100
-        if self.rect.y>=800 or self.rect.y<=0 or self.rect.x >=600 or self.rect.x <=0: self.kill()
 
+class Bullet (pygame.sprite.Sprite):
+    image = pygame.Surface((10, 10), pygame.SRCALPHA)
+    pygame.draw.circle(image, "red", (5, 5), 5)
+    screen_rect = pygame.Rect(0,0,450,600)
+    
+    def __init__(self, pos: pygame.Vector2, direction: pygame.Vector2, speed: float = 5) -> None:
+        pygame.sprite.Sprite.__init__(self)
+        self.pos = pos
+        self.direction = direction.normalize()
+        self.speed = speed
+        self.rect = Bullet.image.get_rect(center=self.pos)
+        
+    def update(self) -> None:
+        self.pos += self.direction * self.speed
+        self.rect.center = self.pos
+        
+        if not self.on_screen(): 
+            # print("killed")
+            self.kill()
+        
+    def on_screen(self) -> bool:
+        return Bullet.screen_rect.colliderect(self.rect)

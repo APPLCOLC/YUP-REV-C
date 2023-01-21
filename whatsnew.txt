@@ -1,11 +1,31 @@
 list written: 1/19/23
 list completed: N/A
 
--Change character entrance states
+-Change character entrance states (Completed [NOPE ONLY] 1/21/23)
 --start with nope, move onto others later
 --make them follow a formula to make them jump on formulaic
 --make them shoot as they go on, so it's more of a distraction
 -Change character animation states (completed 1/19/23)
 --STOP USING THE TIME MODULE
--Change character arguments
+-Change character arguments (completed 1/19/22)
 --make it a dictionary, so unneeded arguments can be passed on without issue
+-Change default bullets to use generated circles (completed 1/23/22)
+--self explantory - unneeded image bloat
+
+
+-ENTRANCE PSEUDOCODE
+
+-make a function called "move to formation" that makes the character slowly move back to their place in the formation
+--this is important because the formulaic entrance will not zap them immediately to the screen
+
+
+NOPE will be an example
+
+He will have either a "left" or "right" variation of the function, which is randomly selected
+It will be a parabola function, with the vertex either being 25,400 or 425,400,
+    and the character will start at 0,400 or 450,400 to make a dipping effect
+When NOPE hits the height of roughly 100 or less, call the "move to formation" function.
+
+Every frame in the animation will be recorded, with a list of frames where the character will shoot bullets.
+The higher the level, the more bullets there will be.
+
