@@ -1,34 +1,19 @@
 import pygame
 from characters import shared
 
-class img():
-    idle1 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-1.png")
-    idle2 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-2.png")
-    idle3 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-3.png")
-    idle = [idle1,idle2,idle3]
-    del idle1,idle2,idle3
-    release1 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-4.png")
-    release2 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-5.png")
-    release3 = pygame.image.load("./assets/images/characters/SPIKE/SPIKE-6.png")
-    release = [release1, release2, release3]
-    del release1, release2, release3
-    bulletleft = pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-3.png")
-    bulletright = pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-4.png")
-    bulletup = pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-1.png")
-    bulletdown = pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-2.png")
-    bullet = [bulletleft,bulletright,bulletup,bulletdown]
-    del bulletleft,bulletright,bulletup,bulletdown
-
-    for i in range(len(idle)):idle[i]=pygame.transform.scale(idle[i],(50,50)).convert_alpha()
-    for i in range(len(release)):release[i]=pygame.transform.scale(release[i],(50,50)).convert_alpha()
-    for i in range(len(bullet)):bullet[i]=pygame.transform.scale(bullet[i],(20,20)).convert_alpha()
 
 #SPIKE AND SPIKEBULLET CODE
 class SPIKEBULLETS(pygame.sprite.Sprite):
+    bullet_images = [
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-3.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-4.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-1.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-2.png"),(20,20)).convert_alpha(), 
+    ]
     def __init__(self, direction, coord):
         pygame.sprite.Sprite.__init__(self)
         self.direction = direction
-        self.image = img.bullet[direction]
+        self.image = SPIKEBULLETS.bullet_images[direction]
 
         self.rect = self.image.get_rect()
         self.rect.center = coord
@@ -39,31 +24,28 @@ class SPIKEBULLETS(pygame.sprite.Sprite):
         if self.direction == 3: self.rect.y += 7.5
 
         if self.rect.right <= 0 or self.rect.left >= 450 or self.rect.top <= 0 or self.rect.bottom >= 600: self.kill()
-class Char(pygame.sprite.Sprite):
+
+
+class Char(shared.Char):
+    #IMAGE LOADING
+    idle = []
+    release = []
+    for i in range(3):
+        idle.append(
+            pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKE-"+str(i+1)+".png"),(50,50)).convert_alpha(),
+        )
+    for i in range(3):
+        release.append(
+            pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKE-"+str(i+4)+".png"),(50,50)).convert_alpha(),
+        )
     def __init__(self,args :dict):
         
-        #SELF-MADE CODE
-        self.state="enter" #current behavior pattern for characters
-                           #always "enter" at the beginnning
-                           #this is what tells characters when to swoop down or when to remain in place
-                           #behavior patterns: "enter" "idle" "attack" "return" "die"
-        self.health=1 #Health for characters.
-                      #Almost always 1.
+        shared.Char.__init__(self,args)
         self.scorevalue=100 #Score given to player
 
-        self.offset = args["offset"] #offset that is used with the formation.
-                            #This never changes.
-        self.formationPos = args["formation_position"] #position that the entire formation follows.
-
-        self.idlePos = [(self.formationPos[0]+self.offset[0]),(self.formationPos[1]+self.offset[1])] # current position, typically calculated with formationPos and offsets.
-                         # This is only not the case when you are in the attacking state.
-
-        self.offScreen = False #calculation to see if a character is visible onscreen
-                               #This is only used in attack state.
-
-        #TIMERS
-        self.animation_frame_counter=0
-        # self.whenToShoot=5
+        #IMAGE CODE
+        self.image = Char.idle[self.animation_frame]
+        self.rect = self.image.get_rect()
         
         #SPIKE-SPECIFIC CODE
         self.shot=False
@@ -71,26 +53,9 @@ class Char(pygame.sprite.Sprite):
         self.y_momentum=0
         self.frames_since_attack=0
 
+        #ENTRANCE CODE FOR NOW
 
-        #PYGAME-SPECIFIC CODE
-        pygame.sprite.Sprite.__init__(self)
-        self.animation_frame=0
-        self.image = img.idle[self.animation_frame]
-        self.rect = self.image.get_rect()
-        self.groups = args["groups"]
-        self.player = args["player"]
-        self.rect.y = -100 #entrance state starting position
-
-    def update(self):
-        self.stateUpdate()
-        # self.movementUpdate()
-        self.collisionUpdate()
-        # print(self.rect.center)
-        # print(self.state)
-        # print("-----")
-        self.animUpdate()
-
-    def animUpdate(self):
+    def animation_update(self):
         #FRAME UPDATING
         self.animation_frame_counter += 1
         if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
@@ -100,45 +65,25 @@ class Char(pygame.sprite.Sprite):
             #IDLE IMAGE UPDATE
             if not self.shot:
                 #RESETTING FRAME
-                if self.animation_frame >= len(img.idle) - 1: self.animation_frame = 0
+                if self.animation_frame >= len(Char.idle) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.idle[self.animation_frame]
+                self.image = Char.idle[self.animation_frame]
             #ATTACKING IMAGE UPDATE
             elif self.shot:
                 #RESETTING FRAME
-                if self.animation_frame >= len(img.release) - 1: self.animation_frame = 0
+                if self.animation_frame >= len(Char.release) - 1: self.animation_frame = 0
                 #SETTING IMAGE
-                self.image = img.release[self.animation_frame]
+                self.image = Char.release[self.animation_frame]
 
         if self.state == "enter":
             self.image=pygame.transform.scale(self.image,(20,75)) #stretching image
             self.rect.x+=20 #centering image
-        #updating hitbox
-        # self.rect=self.image.get_rect()
-    def stateUpdate(self):
-        # except Exception as error:print(error)
-        if self.state=="enter": self.state_enter()
-        if self.state=="idle": self.state_idle()
-        if self.state=="attack": self.state_attack()
-        if self.state=="return": self.state_return()
-        # print(self.state)
+
 
     def state_enter(self):
-        #zooms down to the idle position
-        #x will already match
-        #starts at top
+        #TEMPORARY
+        shared.Char.state_enter(self)
 
-        #movement code
-        self.rect.center = (self.idlePos[0],self.rect.center[1]) #matching x position
-        if self.idlePos[1] > self.rect.center[1]: self.rect.y += 35
-        elif self.idlePos[1] < self.rect.center[1]: self.rect.y -= 35
-        if (30)>(self.idlePos[1]-self.rect.center[1])>(-30):
-            self.rect.center = self.idlePos
-            self.state = "idle"
-            # print("state is now idle")
-
-    def state_idle(self):
-        self.rect.center=self.idlePos
     def state_attack(self):
         #start code, to launch spike
         if not self.initial_attack:
@@ -150,45 +95,25 @@ class Char(pygame.sprite.Sprite):
         self.y_momentum-=0.1
         self.rect.y+=self.y_momentum
         self.frames_since_attack+=1
-        self.rect.center=((self.formationPos[0]+self.offset[0]),self.rect.center[1])
+        self.rect.center=(self.idlePos[0],self.rect.center[1])
         #shoot code
         if not self.shot and (abs(self.rect.center[0]-self.player.rect.center[0])<=5 or abs(self.rect.center[1]-self.player.rect.center[1])<=5):
             self.shot=True
             self.shoot()
         #return code
-        if abs((self.rect.center[1]-(self.formationPos[1]+self.offset[1])))<=10 and self.frames_since_attack>=20: 
+        if abs((self.rect.center[1]-(self.idlePos[1])))<=10 and self.frames_since_attack>=20: 
             self.shot=False
             self.initial_attack=False
             self.y_momentum=0
             self.state='idle'   
-    def state_return(self):
-        self.rect.center=[self.idlePos[0],self.rect.center[1]]
-        self.rect.y+=10
-        if abs(self.rect.center[1]-(self.formationPos[1] + self.offset[1]))<5:self.state="idle"
+        
     def shoot(self):
         for i in range(4):
             bullet=SPIKEBULLETS(i,self.rect.center)
             self.groups["universal"].add(bullet)
             self.groups["enemy"].add(bullet)
-    def state_die(self):pass
-    # def movementUpdate(self): self.idlePos = [(self.formationPos[0] + self.offset[0]), (self.formationPos[1] + self.offset[1])];self.rect.center=self.idlePos
-    def collisionUpdate(self):
-        #please note that, with collision, there is no registration for touching YUP
-        #this is because YUP handles collision with enemies herself
-        #however, the enemies have to register how to collide with bullets
-        bullet_hit = pygame.sprite.spritecollide(self, self.groups["bullet"], False)
-        for item in bullet_hit:
-            item.health -= 1
-            self.health -= 1
-            if self.health < 1:
-                die = shared.diePop(self.rect.center)
-                self.groups["universal"].add(die)
-                self.player.score += self.scorevalue
-                self.state = "dead"
-                self.kill()
-    def formationUpdate(self,formationPos):
-        self.idlePos = [(self.formationPos[0] + self.offset[0]), (self.formationPos[1] + self.offset[1])]
-        self.formationPos=formationPos
+    
+
 
 
         

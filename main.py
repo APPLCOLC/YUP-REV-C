@@ -264,15 +264,11 @@ class Sounds:
     ###############FUNCTIONS###############-
 
     def play_song(self,song_name):
+        return
         with open('./assets/settings.txt','r') as data:
             vol=eval(data.read())['OST VOL'][0]
         self.ost[str(song_name)].set_volume(vol)
         pygame.mixer.Channel(0).play(self.ost[str(song_name)],loops=-1)
-        # self.ost[str(song_name)].play(loops=-1)
-        # with open('./assets/settings.txt','r') as data:vol=eval(data.read())['OST VOL'][0]
-        # pygame.mixer.music.set_volume(vol)
-        # pygame.mixer.music.play(loops=10)
-        pass
 
 
     @staticmethod
@@ -280,6 +276,7 @@ class Sounds:
         pygame.mixer.Channel(0).stop()
 
     def play_nonmain_song(self,song):
+        return
         #This is specifically because if you replace the music file being played, in a menu for instance, it will not remember any song played before.
         #If you pause the game, it replaces the gameplay music with the pause music, and forges all about the gameplay music.
         with open('./assets/settings.txt','r') as data:
@@ -320,11 +317,11 @@ sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this
 
 for sound in os.listdir("./assets/sounds/"):
     sounds.sounds[str(sound)] = pygame.mixer.Sound("./assets/sounds/" + str(sound))
-for song in os.listdir("./assets/ost/"):
-    if ".mp3" not in song:
-        continue
-    else:
-        sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
+# for song in os.listdir("./assets/ost/"):
+#     if ".mp3" not in song:
+#         continue
+#     else:
+#         sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
 
 
 # print(sounds.container)

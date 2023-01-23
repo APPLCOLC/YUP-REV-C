@@ -8,6 +8,7 @@ class Char(shared.Char):
         idle.append(
             pygame.transform.scale(pygame.image.load("./assets/images/characters/NOPE/NOPE-"+str(i+1)+".png"),(35,35)).convert_alpha()
         )
+    idle.pop(3)
     def __init__(self,args:dict):
         shared.Char.__init__(self,args)
 
@@ -30,12 +31,12 @@ class Char(shared.Char):
 
     #ANIMATED SPRITESHEETS
     def animation_update(self):
-        self.image = Char.idle[self.animation_frame] #sets current image
         self.animation_frame_counter += 1
 
         if self.animation_frame_counter >= 6: #updates frame if enough time has passed
             self.animation_frame_counter = 0
             self.animation_frame+=1
+            self.image = Char.idle[self.animation_frame] #sets current image
 
         if self.animation_frame>=len(Char.idle)-1:
             self.animation_frame=0 #resets frame if out-of-index
@@ -67,10 +68,8 @@ class Char(shared.Char):
             self.frames_in_state = 0
     
     def state_attack(self):
-        #checks if it's the first frame through checking if self.frames_in_state is zero
-        #it will then run startup code
+        #startup code / adding shoot times
         if self.frames_in_state == 0:
-            # picking shoot times for the first time
             self.shoot_times = Char.generate_shoot_times(level=self.level,starttime=15,endtime=45)
 
         self.frames_in_state += 1
@@ -81,6 +80,7 @@ class Char(shared.Char):
                 self.shoot()
                 self.shoot_times.pop(0)
 
+        #exiting state
         self.rect.y+=5
         if self.rect.top>=600:
             self.rect.center=(self.idlePos[0],self.idlePos[1]-100)
@@ -91,7 +91,7 @@ class Char(shared.Char):
         self.rect.center=[self.idlePos[0],self.rect.center[1]]
         self.rect.y+=5
         if abs(self.rect.center[1]-self.idlePos[1])<5:
-            self.state="idle"
+            self.state="idle_search"
 
 
 
