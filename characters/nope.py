@@ -19,7 +19,7 @@ class Char(shared.Char):
         #most of nope's arguments are default, so no value rewrites
 
         #entrance values
-        self.shoot_times = Char.generate_shoot_times(level=self.level,starttime=15,endtime=45)
+        self.shoot_times = Char.generate_shoot_times(level=self.level,starttime=20,endtime=20, bullet_cap = 2)
         self.entrance_direction = random.choice(['l','r']) #this is the entrance they are COMING FROM, NOT the direction they are MOVING
         self.vertex = ( 0,0 )
         if self.entrance_direction == 'r':
@@ -70,7 +70,7 @@ class Char(shared.Char):
     def state_attack(self):
         #startup code / adding shoot times
         if self.frames_in_state == 0:
-            self.shoot_times = Char.generate_shoot_times(level=self.level,starttime=15,endtime=45)
+            self.shoot_times = Char.generate_shoot_times(level=self.level,starttime=20,endtime=30,bullet_cap = 2)
 
         self.frames_in_state += 1
 

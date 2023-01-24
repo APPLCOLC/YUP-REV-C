@@ -1,4 +1,5 @@
 """START###############################################################"""
+# input("START")
 """IMPORTS---------------------"""
 import pygame,math,time,os,random
 
@@ -20,6 +21,7 @@ player_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
+# input("AFTER INITIALIZING PYGAME")
 
 """LOADING#################################################################"""
 
@@ -114,7 +116,7 @@ for directory in os.listdir("./assets/images/bg/"):
             break
         break #debug remove - makes there only one image
 
-
+# input("LOADED BACKGROUNDS")
 
 """LEVELS---"""
 loaded_levels = {}
@@ -134,7 +136,7 @@ for item in os.listdir("levels/"):
     the_code = "import levels." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_levels)
 
-
+# input("LOADED LEVELS")
 
 """BULLETS---"""
 loaded_bullets = {}
@@ -154,6 +156,7 @@ for item in os.listdir("./bullets/"):
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
 
+# input("LOADED BULLETS")
 
 """UI IMAGES---"""
 class UiImages:
@@ -226,16 +229,6 @@ class UiImages:
     option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30))
     option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30))
 
-    #GAME OVER IMAGES
-    continueGraphic1 = pygame.image.load("./assets/images/UI/game over/continue 1.png")
-    continueGraphic2 = pygame.image.load("./assets/images/UI/game over/continue 2.png")
-    continueGraphic3 = pygame.image.load("./assets/images/UI/game over/continue 3.png")
-    continueGraphic4 = pygame.image.load("./assets/images/UI/game over/continue 4.png")
-    continueGraphic = [continueGraphic2,continueGraphic3,continueGraphic4,continueGraphic1]
-    del continueGraphic2, continueGraphic3, continueGraphic4, continueGraphic1
-    gameOverGraphic = pygame.image.load("./assets/images/UI/game over/GAME OVER.png")
-    scoreGraphic = pygame.image.load("./assets/images/UI/game over/SCORE.png")
-
     #BAGKGROUNDS
     title_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/title/background.png"), (450, 600))
     error_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"), (450, 600))
@@ -246,7 +239,7 @@ class UiImages:
 
 ui=UiImages #this creates an object of the class. this is what everything refers to
 
-
+# input("LOADED UI")
 
 """SOUNDS---"""
 
@@ -317,11 +310,15 @@ sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this
 
 for sound in os.listdir("./assets/sounds/"):
     sounds.sounds[str(sound)] = pygame.mixer.Sound("./assets/sounds/" + str(sound))
-# for song in os.listdir("./assets/ost/"):
-#     if ".mp3" not in song:
-#         continue
-#     else:
-#         sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
+
+# input("LOADED SOUND EFFECTS")
+
+sounds.ost["pause.mp3"] = pygame.mixer.Sound("./assets/ost/pause.mp3")
+for song in os.listdir("./assets/ost/"):
+    if ".mp3" not in song:
+        continue
+    else:
+        sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
 
 
 # print(sounds.container)
@@ -330,7 +327,6 @@ for sound in os.listdir("./assets/sounds/"):
 """FINISHING---"""
 
 del x,photo, prefixList, curFrame,directory, temp, the_code, i
-
 
 
 
@@ -425,6 +421,7 @@ def display_score(score_value, coord, snap=True, shadow=True, color=(0, 0, 0), s
     del score_font,score_rect,score_surface
 
 
+# input("LOADED IMPORTANT FUNCTIONS")
 
 
 
@@ -509,7 +506,7 @@ class BG:
 
 """FORMATION FOR GAMEPLAY--------------------"""
 class Formation:
-    def __init__(self, player, available_char, level, file=None):
+    def __init__(self, player, level, file=None):
 
         # print("==============NEW FORMATION")
 
@@ -527,8 +524,19 @@ class Formation:
         self.total_characters = 0 #total amount of characters
         self.spawn_list = {} #spawnlist
         self.spawned_formation = [] #spawned characters
-        self.available_char=available_char #characters that can be randomly generated
-        self.formation_size=[0,0] #size of the formation
+        available_char = self.file.imports #characters that can be randomly generated
+
+        #calculating characters to use
+        self.used_char = [available_char[0]]
+        chunk = self.file.level_length / (len(available_char)-1)
+        
+        for _ in range( int(level // chunk) ):
+            if len(self.used_char) < len(available_char):
+                self.used_char.append(available_char[_+1])
+            
+
+
+        self.formation_size = [0,0] #size of the formation
 
 
         self.spawn_list=self.generate_spawn_list()
@@ -560,7 +568,7 @@ class Formation:
         if self.state == "idle": self.idle()
         elif self.state == "start": self.start()
 
-        self.update_size()
+        # self.update_size()
         self.update_character_formation_pos()
         if self.state != "start": self.remove_dead()
 
@@ -578,7 +586,7 @@ class Formation:
         #checking if time has passed
         self.current_frame += 1
 
-        if self.current_frame >= 3:
+        if self.current_frame >= 20: #DEBUG - CHANGE TO 6
             
             # index = random.randint(0,len(self.spawn_))
             
@@ -622,7 +630,6 @@ class Formation:
 
             #deleting index 0 so the next one is in line
             self.spawn_list_indexes.pop(0)
-
 
     def calculate_attack_time(self):
         #calculating when to make a character attack
@@ -686,19 +693,25 @@ class Formation:
         #randomly generates characters and puts them in a formation
         formation = {}
 
-        #column random size
-        column_size = random.randint(
-            self.file.char_min_width,
-            self.file.char_max_width)
-        #row random size
-        row_size = random.randint(
-            self.file.char_min_height,
-            self.file.char_max_height)
+        #column size based on current level
+        column_size = int(
+                self.file.char_min_width + #minimum value
+                ((self.level / self.file.level_length)* #percent
+                 (self.file.char_max_width - self.file.char_min_width)) #amount of variation
+        )
+        row_size = int(
+                self.file.char_min_height +  # minimum value
+                ((self.level / self.file.level_length) *  # percent
+                 (self.file.char_max_height - self.file.char_min_height))  # amount of variation
+        )
+
+        # print(str(self.level) + "|" + str(self.file.level_length) + "|" + str(column_size) + "|" + str(row_size))
+
 
         for i in range(row_size): #row generation
             formation[i]=[]
             for j in range(column_size): #column generation
-                formation[i].append(random.choice(self.available_char))
+                formation[i].append(random.choice(self.used_char))
         return formation
 
     def generate_spawn_list(self):
@@ -822,12 +835,10 @@ class Level:
         """fileReader will then pass off the worldData file to 'formation', as well as the current level"""
         if self.form is None:
             self.form=Formation(player = self.player,
-                available_char = self.world_file.imports,
                 level=self.level,
                 file=self.world_file)
         else:
             self.form.__init__(player = self.player,
-                available_char = self.world_file.imports,
                 level=self.level,
                 file=self.world_file)
 
@@ -849,7 +860,6 @@ class Level:
             self.world_file.update_intensities(self.level)
 
             self.form.__init__(player=self.player,
-                available_char=self.world_file.imports,
                 level=self.level,
                 file=self.world_file)
 
@@ -1180,10 +1190,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 
 
 """GAMEPLAY ASSETS--------------------"""
-def play(
-        bullet_shared=loaded_bullets["shared"],
-        settings=None
-        ):
+def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
     # DEALING WITH SETTINGS:
     if settings is None:
@@ -1245,10 +1252,11 @@ def play(
     switch_frames=0
 
     while run:
+        # print(str(clock.get_fps()),str(player.score))
 
         #DEBUG REMOVE
         switch_frames+=1
-        if switch_frames>6:
+        if switch_frames>60:
             # level_class.advance_world()
             # level_class.refresh_world_data()
             switch_frames=0

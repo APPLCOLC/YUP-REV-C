@@ -1,4 +1,4 @@
-import pygame,random
+import pygame,random,math
 from characters import shared
 
 
@@ -11,7 +11,7 @@ class Char(shared.Char):
 
         shared.Char.__init__(self,args)
     
-        self.scorevalue=20 #Score given to player
+        self.scorevalue= 250 #Score given to player
 
         self.rect.y = -100 #entrance state starting position
 
@@ -19,6 +19,11 @@ class Char(shared.Char):
         self.frames=0
         self.zapping=False
         self.player = args ["player"]
+
+        #ENTRANCE CODE
+        self.entrance_direction = random.choice([1,-1])
+        if self.entrance_direction == 1: self.rect.x = -10
+        else: self.rect.x = 450
 
 
     def animation_update(self):
@@ -42,8 +47,13 @@ class Char(shared.Char):
             self.image = Char.idle[self.animation_frame]  # sets current image
 
     def state_enter(self):
-        #TEMPORARY
-        shared.Char.state_enter(self)
+        self.rect.x += self.entrance_direction
+        self.rect.center = (
+            self.rect.center[0],
+            (math.sin((self.rect.center[0]+200)/25)*200 + 300)
+        )
+        if abs(self.rect.center[0]-225) <= 10:
+            self.state = "idle_search"
 
     def state_attack(self):
         self.rect.y+=5

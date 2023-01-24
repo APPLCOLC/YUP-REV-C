@@ -27,10 +27,10 @@ class data:
             "uitype":'default',
             "bg":'Space'
             }
-        self.level_length=50 #TEMPORARY, NORMALLY 10
+        self.level_length=25 #TEMPORARY, NORMALLY 10
 
         #SIZE values
-        self.char_distance_x=50
+        self.char_distance_x=40
         self.char_distance_y=40
 
         self.char_min_width=5
@@ -69,7 +69,7 @@ class data:
         };self.manual_formations.append(form)
 
         
-        self.manual_type=2 # [0 : no influence , 1 : random order , 2 : ordered] ; 0 and 2 will overwrite manual_influence.
+        self.manual_type=0 # [0 : no influence , 1 : random order , 2 : ordered] ; 0 and 2 will overwrite manual_influence.
         self.manual_loop=True #this only counts of the type is 2.
         self.manual_influence=0  #<0 is no influence, >100 is all influence ; only applies to type 1
 

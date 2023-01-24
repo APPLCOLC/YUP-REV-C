@@ -15,7 +15,7 @@ class Char(shared.Char):
         
         shared.Char.__init__(self,args)
         
-        self.scorevalue = 20
+        self.scorevalue = 200
 
         #PIRAHNA-SPECIFIC CODE
         self.player = args["player"] #THIS is to get positions for when the sprite is in attack state
@@ -26,12 +26,8 @@ class Char(shared.Char):
         #IMAGE CODE
         self.image = Char.chomp[self.animation_frame]
         self.rect = self.image.get_rect()
-        
-        #STARTUP CODE
-        self.rect.center = ( 
-            random.randint(25,425),
-            610
-        )
+
+        self.rect.center = (0,0)
         #the entrance state will move in a cubic function, although x won't move 
 
 
@@ -59,13 +55,17 @@ class Char(shared.Char):
 
     def state_enter(self):
         #jump down code
-        self.rect.center = (self.idlePos[0],self.rect.center[1]) #matching x position
-        if self.idlePos[1] > self.rect.center[1]: 
-            self.rect.y += 35
-        elif self.idlePos[1] < self.rect.center[1]: 
-            self.rect.y -= 35
+        self.frames_in_state += 1
+
+        self.rect.center = (
+            self.idlePos[0],
+            (-0.125*(self.frames_in_state-100) )**3 + 590
+        )
+        # print(self.rect.center)
+
         if (30)>(self.idlePos[1]-self.rect.center[1])>(-30):
             self.rect.center = self.idlePos
+            self.frames_in_state = 0
             self.state = "idle"
 
     def state_attack(self):
@@ -109,25 +109,10 @@ class Char(shared.Char):
         #moving
         self.rect.y+=self.y_momentum
 
-        #MOVING HORIZONTAL CODE
-        x_distance = self.rect.center[0] - (self.idlePos[1])
-        x_condition_met = (x_distance < 10) and (x_distance > -10)
-        #stop code
-        if x_condition_met:
-            self.x_momentum=0
-        #horizontal momentum
-        if (not x_condition_met) and (x_distance>5):
-            self.x_momentum-=0.1
-        if (not x_condition_met) and (x_distance<-5):
-            self.x_momentum+=0.1
-        #momentum cap
-        if self.x_momentum<=-10: self.x_momentum=-10
-        elif self.x_momentum>=10: self.x_momentum=10
-        self.rect.x+=self.x_momentum
-
+        #
         #END CODE
-        if x_condition_met and y_condition_met:
-             self.state="idle"
+        if y_condition_met:
+             self.state="idle_search"
 
    
         

@@ -1,11 +1,15 @@
 list written: 1/21/23
 list completed: N/A
 
--New FIHS formation code
---SINEWAVE pattern
--New SPIKE formation code
---BOUNCE pattern - will shoot spikes
--New ZAPP formation code
---Appears from BOTTOM - warns first
+ADD FINISHING TOUCHES FOR DEMO
 
-actually no i did none of this yet, I changed the way the characters work lolol
+-New character template (1/22/23)
+-New FIHS formation code (1/23/23)
+-New SPIKE formation code
+--BOUNCE pattern, a la solitare - will shoot spikes
+-New ZAPP formation code (1/24/23)
+
+-Only make formation near max values as world progresses, only hitting its max potential when it's at 90% of its "level length" value (1/23/23)
+-There is the import list, but only add more characters to the actual random generator as you progress through the world (1/23/23)
+
+-Game over screen that tells you to screenshot your score

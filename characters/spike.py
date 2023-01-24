@@ -41,7 +41,7 @@ class Char(shared.Char):
     def __init__(self,args :dict):
         
         shared.Char.__init__(self,args)
-        self.scorevalue=100 #Score given to player
+        self.scorevalue = 400 #Score given to player
 
         #IMAGE CODE
         self.image = Char.idle[self.animation_frame]
@@ -74,11 +74,6 @@ class Char(shared.Char):
                 if self.animation_frame >= len(Char.release) - 1: self.animation_frame = 0
                 #SETTING IMAGE
                 self.image = Char.release[self.animation_frame]
-
-        if self.state == "enter":
-            self.image=pygame.transform.scale(self.image,(20,75)) #stretching image
-            self.rect.x+=20 #centering image
-
 
     def state_enter(self):
         #TEMPORARY

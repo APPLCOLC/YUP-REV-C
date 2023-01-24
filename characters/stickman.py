@@ -15,7 +15,8 @@ class Char(shared.Char):
     def __init__(self,args :dict):
         #INIT
         shared.Char.__init__(self,args)
-        self.scorevalue= 15
+        
+        self.scorevalue= 50
         # STICKMAN-SPECIFIC CODE
         self.locked_in = False
         self.y_momentum = self.x_momentum = 0

@@ -106,7 +106,7 @@ class Char(pygame.sprite.Sprite):
         #default character code
         self.state="enter" #current behavior patterns
         self.health=1 #Health for characters
-        self.scorevalue=10 #Score given to player
+        self.scorevalue=100 #Score given to player
         self.idlePos = [(args["formation_position"][0]+self.offset[0]),(args["formation_position"] [1]+self.offset[1])] # current position in idle
         
 
