@@ -27,7 +27,7 @@ class data:
             "uitype":'default',
             "bg":'Space'
             }
-        self.level_length=25 #TEMPORARY, NORMALLY 10
+        self.level_length=15 #TEMPORARY, NORMALLY 10
 
         #SIZE values
         self.char_distance_x=40
@@ -47,7 +47,7 @@ class data:
 
 
         #character
-        self.imports=['zapp','nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
+        self.imports=['nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
         self.speed=1
         
 

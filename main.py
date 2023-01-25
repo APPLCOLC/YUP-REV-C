@@ -257,7 +257,7 @@ class Sounds:
     ###############FUNCTIONS###############-
 
     def play_song(self,song_name):
-        return
+        # return
         with open('./assets/settings.txt','r') as data:
             vol=eval(data.read())['OST VOL'][0]
         self.ost[str(song_name)].set_volume(vol)
@@ -269,7 +269,7 @@ class Sounds:
         pygame.mixer.Channel(0).stop()
 
     def play_nonmain_song(self,song):
-        return
+        # return
         #This is specifically because if you replace the music file being played, in a menu for instance, it will not remember any song played before.
         #If you pause the game, it replaces the gameplay music with the pause music, and forges all about the gameplay music.
         with open('./assets/settings.txt','r') as data:

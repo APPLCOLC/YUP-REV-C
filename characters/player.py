@@ -132,9 +132,10 @@ class Player(pygame.sprite.Sprite):
 
         #kill code
         if self.health <= 0:
-            self.state = "dead"
-            self.sounds.sounds["death.mp3"].play()
-            self.kill()
+            # self.state = "dead"
+            self.sounds.sounds["ouch.mp3"].play()
+            self.health = 3
+            # self.kill()
 
         #invincible timer 
         if self.invincible_timer > 0:
