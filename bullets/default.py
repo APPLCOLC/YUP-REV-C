@@ -4,7 +4,6 @@ import pygame
 #The default bullet simply travels to the other side of the stage and then gets deleted.
 #It also deletes itself if it touches a bullet.
 class Bullet(pygame.sprite.Sprite):
-    #Credit to Andrew Coffey for vector help
     image = pygame.Surface((10, 10), pygame.SRCALPHA)
     pygame.draw.circle(image, "white", (5, 5), 5)
     screen_rect = pygame.Rect(0,0,450,600)

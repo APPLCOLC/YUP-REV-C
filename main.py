@@ -1198,7 +1198,15 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
 
     # CREATING THE PLAYER
-    player = loaded_characters["player"].Player(enemy_group, bullet_group, universal_group, sounds, loaded_bullets)  # Defines the player
+    player = loaded_characters["player"].Player(
+        sounds=sounds,
+        loaded_bullets=loaded_bullets,
+        groups = {
+            "universal":universal_group,
+            "bullet":bullet_group,
+            "enemy":enemy_group
+            }
+    )
     universal_group.add(player)
     player_group.add(player)
 
@@ -1230,10 +1238,10 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
     def redraw_window():
 
         level_class.bg.display_bg()
-        universal_group.draw(window)
+        universal_group.draw(window) 
 
         # UI
-        bullet_shared.display_bullet(window, (0, 0), player.current_weapon, loaded_bullets)
+        # bullet_shared.display_bullet(window, (0, 0), player.current_weapon, loaded_bullets)
         player.display_health(window, (30, 0))
         display_score(player.score, (450, 0), window)
 
@@ -1273,7 +1281,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
         level_class.update()
 
         #game over initialization
-        if player.player_died:
+        if player.state == "dead":
             exit_state()
             return "title"
 

@@ -13,11 +13,6 @@ def shoot(loaded,bullet_name,coordinates,all_sprites,enemy_sprites,bullet_sprite
         bullet=loaded[bullet_name].Bullet(args=args)
         all_sprites.add(bullet)
         bullet_sprites.add(bullet)
-
-    # elif bullettype == "missile":
-    #         bullet = Missile(playerx,playery,sounds,enemyClass=HurtSprites)
-    #         allsprites.add(bullet)
-    #         bulletsprites.add(bullet)
         
 
 def display_bullet(WIN,positionTuple,bullettype,loaded):

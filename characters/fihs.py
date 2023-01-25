@@ -20,7 +20,6 @@ class Char(shared.Char):
         #PIRAHNA-SPECIFIC CODE
         self.player = args["player"] #THIS is to get positions for when the sprite is in attack state
         self.direction = "right"
-        self.y_momentum = 0
         self.x_momentum = 0
 
         #IMAGE CODE
@@ -69,52 +68,28 @@ class Char(shared.Char):
             self.state = "idle"
 
     def state_attack(self):
-        #MOVING DOWN CODE
-        self.y_momentum+=0.1
-        #preventing too fast a speed
-        self.y_momentum=5 if self.y_momentum>=5 else self.y_momentum
+        self.rect.center = (
+            self.rect.center[0],
+            (-1/9) * ( (self.frames_in_state - 60) **2) + 475
+        )
 
         #changing direction
-        if (self.player.rect.x-self.rect.x)>10:
+        if (self.player.rect.x-self.rect.x)>10 and abs(self.x_momentum)<2:
             self.x_momentum+=0.1
             self.direction="right"
-        elif (self.player.rect.x-self.rect.x)<-10:
+        elif (self.player.rect.x-self.rect.x)<-10 and abs(self.x_momentum)<2:
             self.x_momentum-=0.1
             self.direction = "left"
         #moving
         self.rect.x+=self.x_momentum
-        self.rect.y+=self.y_momentum
 
         #CHANGING STATE TO RETURN STATE
-        if self.rect.top>=450: #ends early to show the character turning around and coming back
-            self.state="return"
-
-    def state_return(self):
-        #MOVING UP CODE
-        y_distance = self.rect.center[1]-(self.idlePos[1])
-        y_condition_met = (y_distance<10)and(y_distance>-10)
-        #stop code
-        if y_condition_met:
-            self.y_momentum=0
-        #up momentum
-        if (not y_condition_met) and (y_distance>5):
-            self.y_momentum-=0.1
-        if (not y_condition_met) and (y_distance<-5):
-            self.y_momentum+=0.1
-        #momentum cap
-        if self.y_momentum<=-10:
-            self.y_momentum=-10
-        if self.y_momentum>=10:
-            self.y_momentum=10
-        #moving
-        self.rect.y+=self.y_momentum
-
-        #
-        #END CODE
-        if y_condition_met:
-             self.state="idle_search"
+        if self.frames_in_state >= 120: #ends early to show the character turning around and coming back
+            self.x_momentum = 0
+            self.frames_in_state = 0
+            self.state="idle_search" #return state does nothing now, as it is a parabola function
+        
+        #updating frame
+        self.frames_in_state += 1
 
    
-        
-         
-

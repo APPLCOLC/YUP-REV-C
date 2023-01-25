@@ -47,7 +47,7 @@ class data:
 
 
         #character
-        self.imports=['nope','fihs','stickman','spike','zapp']
+        self.imports=['zapp','nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
         self.speed=1
         
 
