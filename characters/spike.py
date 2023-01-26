@@ -1,4 +1,4 @@
-import pygame
+import pygame,random
 from characters import shared
 
 
@@ -53,7 +53,9 @@ class Char(shared.Char):
         self.y_momentum=0
         self.frames_since_attack=0
 
-        #ENTRANCE CODE FOR NOW
+        # ENTRANCE CODE
+        self.entrance_direction = random.choice([1, -1])
+        self.rect.x = -10 if self.entrance_direction == 1 else 450
 
     def animation_update(self):
         #FRAME UPDATING

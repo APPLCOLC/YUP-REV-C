@@ -3,17 +3,20 @@ from bullets.shared import *
 
 class Player(pygame.sprite.Sprite):
     #IMAGE LOADING
-    idle,shoot,hurt,dead,celebrate=[],[],[],[],[]
+    idle,shoot,land,hurt,dead,celebrate=[],[],[],[],[],[]
     for i in range(3):
         idle.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+1)+".png"),(50,50)).convert_alpha())
-        hurt.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+9)+".png"),(50,50)).convert_alpha())
-        dead.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+12)+".png"),(50,50)).convert_alpha())
-        celebrate.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+15)+".png"),(50,50)).convert_alpha())
-    for i in range(5):
-        shoot.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+4)+".png"),(50,50)).convert_alpha())
-    health_HI = pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/000.png"),(25,25)).convert_alpha()
-    health_MID = pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/001.png"), (25, 25)).convert_alpha()
-    health_LO = pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/002.png"), (25, 25)).convert_alpha()
+        land.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+4)+".png"),(50,50)).convert_alpha())
+        shoot.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+7)+".png"),(50,50)).convert_alpha())
+        hurt.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+10)+".png"),(50,50)).convert_alpha())
+        dead.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+13)+".png"),(50,50)).convert_alpha())
+        celebrate.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/YUP/YUP_-"+str(i+16)+".png"),(50,50)).convert_alpha())
+
+    health = (
+                 pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/002.png"), (25, 25)).convert_alpha(),
+                 pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/001.png"), (25, 25)).convert_alpha(),
+                 pygame.transform.scale(pygame.image.load("./assets/images/UI/LIVES/000.png"),(25,25)).convert_alpha()
+    )
 
     def __init__(self,sounds,loaded_bullets,groups={}):
         pygame.sprite.Sprite.__init__(self)
@@ -38,7 +41,7 @@ class Player(pygame.sprite.Sprite):
 
         #general values
         self.score = 0
-        self.health = 3
+        self.health = 5
         self.state = "idle"
         self.groups = groups
         self.loaded_bullets = loaded_bullets
@@ -56,7 +59,42 @@ class Player(pygame.sprite.Sprite):
 
 
     def animation_update(self):
-        pass
+        self.animation_frame_counter += 1
+        if self.animation_frame_counter >= 3:
+            self.animation_frame += 1
+            self.animation_frame_counter = 0
+            self.change_image()
+
+    def change_image(self):
+        # all animations are formatted as [resetting frame] ; [setting image], so i'm not commenting anything
+        if self.state == "idle":
+            if self.animation_frame > (len(Player.idle) - 1): self.animation_frame = 0; return
+            self.image = Player.idle[self.animation_frame]
+        if self.state == "land":
+            if self.animation_frame > (len(Player.land) - 1):
+                self.animation_frame = 0
+                self.animation_change("idle")  # resetting frame here since no loop
+                return
+            self.image = Player.land[self.animation_frame]
+        if self.state == "shoot":
+            if self.animation_frame > (len(Player.shoot) - 1):
+                self.animation_frame = 0
+                self.animation_change("idle")  # resetting frame here since no loop
+                return
+            self.image = Player.shoot[self.animation_frame]
+        if self.state == "hurt" or self.invincible_timer > 0:
+            if self.animation_frame > (len(Player.hurt) - 1):
+                self.animation_frame = 0
+                self.animation_change("idle")  # resetting frame here since no loop
+                return
+            self.image = Player.hurt[self.animation_frame]
+
+
+    def animation_change(self,name):
+        # print(name)
+        self.state = name
+        self.animation_frame = self.animation_frame_counter = 0
+        self.change_image() #forcing an image display since it usually hides the first image if this isn't done
 
 
     def controls(self,event):
@@ -88,7 +126,7 @@ class Player(pygame.sprite.Sprite):
                     self.jump_frames = 0
 
             #shooting
-            if event.key == pygame.K_j:
+            if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                 shoot(
                     loaded = self.loaded_bullets,
                     bullet_name = self.bullet,
@@ -97,6 +135,8 @@ class Player(pygame.sprite.Sprite):
                     enemy_sprites = self.groups["enemy"],
                     bullet_sprites = self.groups["bullet"]
                 )
+                #change animation
+                self.animation_change("shoot")
 
         #checking key lifting to stop movement 
         if event.type == pygame.KEYUP:
@@ -110,9 +150,6 @@ class Player(pygame.sprite.Sprite):
                 self.moving[1] = False 
                 #checking opposite direction movement for exception
                 self.speed = -6 if self.moving[0] else 0
-            
-        
-
 
 
     def collision(self):
@@ -128,14 +165,16 @@ class Player(pygame.sprite.Sprite):
                 except AttributeError:pass
                 self.invincible_timer = 120
                 self.sounds.sounds["ouch.mp3"].play()
+                # change animation
+                self.animation_change("hurt")
                 break #preventing multiple hits
 
         #kill code
         if self.health <= 0:
-            # self.state = "dead"
+            self.state = "dead"
             self.sounds.sounds["ouch.mp3"].play()
-            self.health = 3
-            # self.kill()
+            # self.health = 3
+            self.kill()
 
         #invincible timer 
         if self.invincible_timer > 0:
@@ -146,10 +185,12 @@ class Player(pygame.sprite.Sprite):
             #ending the jump
             if self.jump_frames >= 60: 
                 self.jump_frames = 0
-                #setting both to false in order to prevent dupicate jumping
+                #setting both to false in order to prevent duplicate jumping
                 self.moving[2] = self.moving[3] = False
                 #resetting position
                 self.rect.center = (self.rect.center[0],500)
+                #making bounce animation
+                self.animation_change("land")
             #updating jump frames for parabola code
             self.jump_frames += 1
         
@@ -167,15 +208,14 @@ class Player(pygame.sprite.Sprite):
             )
             
 
-
     def reset_movement(self):
         #movement declarations
         self.moving = [False,False,False,False] #left, right, up, down
         self.speeds = 0 
 
 
-    def display_health(self,WIN,location):
+    def display_health(self,WIN,location_y=0):
         #displaying health code
-        if self.health <= 1: WIN.blit(Player.health_LO,location)
-        if self.health == 2: WIN.blit(Player.health_MID,location)
-        if self.health >= 3: WIN.blit(Player.health_HI,location)
+        for i in range(self.health):
+            val = 2 if i > 2 else i
+            WIN.blit(Player.health[val],((i*25),location_y))

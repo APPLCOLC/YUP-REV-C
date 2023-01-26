@@ -1,9 +1,5 @@
 -new SPIKE entrance pattern
 
-
--rewrite player (completed 1/25/22)
--remove player vertical movement, replace with jumps (completed 1/25/22)
-
 -give character drops
 
 -Game over screen that tells you to screenshot your score

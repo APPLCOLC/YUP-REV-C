@@ -1242,7 +1242,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
         # UI
         # bullet_shared.display_bullet(window, (0, 0), player.current_weapon, loaded_bullets)
-        player.display_health(window, (30, 0))
+        player.display_health(window, 0)
         display_score(player.score, (450, 0), window)
 
 
