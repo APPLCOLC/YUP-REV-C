@@ -1,5 +1,6 @@
 import pygame
 from bullets.shared import *
+import characters.shared as shared
 
 class Player(pygame.sprite.Sprite):
     #IMAGE LOADING
@@ -47,10 +48,10 @@ class Player(pygame.sprite.Sprite):
         self.loaded_bullets = loaded_bullets
 
         #inventory
-        self.shield_meter = 100
+        """the bullet counts as everything, including the shield.
+        Instead of checking for a separate value, it just checks if bullet is anything but "default"
+        It uses this for hit detection, and all that jazz."""
         self.bullet = "default" #can be changed for power-ups, temporarily
-        self.ammo = 0
-
 
     
     def update(self):
@@ -127,6 +128,8 @@ class Player(pygame.sprite.Sprite):
 
             #shooting
             if event.key == pygame.K_j or event.key == pygame.K_SPACE:
+                #change animation
+                if len(self.groups["bullet"])<2:self.animation_change("shoot")
                 shoot(
                     loaded = self.loaded_bullets,
                     bullet_name = self.bullet,
@@ -135,8 +138,6 @@ class Player(pygame.sprite.Sprite):
                     enemy_sprites = self.groups["enemy"],
                     bullet_sprites = self.groups["bullet"]
                 )
-                #change animation
-                self.animation_change("shoot")
 
         #checking key lifting to stop movement 
         if event.type == pygame.KEYUP:
@@ -160,7 +161,16 @@ class Player(pygame.sprite.Sprite):
         #collision with enemies -- only if not invincible 
         if self.invincible_timer == 0:
             for item in pygame.sprite.spritecollide(self,self.groups["enemy"], False, collided = pygame.sprite.collide_mask):
-                self.health = self.health - 1 if self.health > 0 else self.health
+                
+                """SHEDDING OFF SHIELD IF ONE IS EQUIPPED"""
+                if self.bullet != "default":
+                    self.bullet = "default"
+                    self.groups["universal"].add(shared.dieBoom(self.rect.center,(50,50)))
+                    
+                else: 
+                    """IF NO SHIELD IS EQUIPPED""" 
+                    self.health = self.health - 1 if self.health > 0 else self.health
+
                 try: item.health -= 1
                 except AttributeError:pass
                 self.invincible_timer = 120
@@ -219,3 +229,8 @@ class Player(pygame.sprite.Sprite):
         for i in range(self.health):
             val = 2 if i > 2 else i
             WIN.blit(Player.health[val],((i*25),location_y))
+        if self.bullet != "default":
+            WIN.blit(
+                pygame.transform.scale(self.loaded_bullets[self.bullet].Bullet.image,(25,25)).convert_alpha(),
+                (((i*25)+25),location_y)
+            )

@@ -506,9 +506,14 @@ class BG:
 
 """FORMATION FOR GAMEPLAY--------------------"""
 class Formation:
-    def __init__(self, player, level, file=None):
+    def __init__(
+            self,
+            player,
+            level, #levels in world
+            file=None,
+            total_level=1): #total level takes worlds into account
 
-        # print("==============NEW FORMATION")
+    # print("==============NEW FORMATION")
 
         #DEFINITIONS
         self.state="start" #level's state; "start","idle", and "complete"
@@ -533,7 +538,6 @@ class Formation:
         for _ in range( int(level // chunk) ):
             if len(self.used_char) < len(available_char):
                 self.used_char.append(available_char[_+1])
-            
 
 
         self.formation_size = [0,0] #size of the formation
@@ -561,6 +565,16 @@ class Formation:
             self.spawned_formation.append([])
             for j in range(len(self.spawn_list[i])):
                 self.spawn_list_indexes.append((i, j))
+
+        #potential item spawn
+        self.items_to_spawn = {}
+        """puts an item in a character if the timing is right and the player has no shield"""
+        if (self.player.bullet == "default") and (self.level%self.file.drop_health == 0):
+            self.items_to_spawn[random.choice(self.spawn_list_indexes)] = ("health",None)
+        """puts a bullet in a character if random chance"""
+        if random.randint(0,100) < self.file.drop_bullet:
+            self.items_to_spawn[random.choice(self.spawn_list_indexes)] = ("bullet",random.choice(self.file.bullets))
+            # print("CONDITION MET")
 
 
     def update(self):
@@ -615,6 +629,21 @@ class Formation:
                                "offset":((self.spawn_list_indexes[0][1] * self.file.char_distance_x),(self.spawn_list_indexes[0][0] * self.file.char_distance_y)),
                                "level":self.level
                             }))
+                """INDEX REFERENCE
+                items_to_spawn: KEY, (row,column) ; VALUE, (item_type,item_name)
+                spawned_formation: [FIRST BRACKET], LIST OF ROWS ; [SECOND BRACKET], CHARACTERS IN ROW
+                """
+                # print(self.spawned_formation)
+                for key,value in self.items_to_spawn.items():
+                    if key[0] <= (len(self.spawned_formation)-1):
+                        # print("ROW CONDITION MET |",str(key),"|",str(self.spawned_formation))
+                        if key[1] <= len(self.spawned_formation[key[0]])-1:
+                            self.spawned_formation[key[0]][key[1]].container = value
+                            # print("ITEM ADDED")
+                            self.items_to_spawn.pop(key) ; break
+                        else:
+                            # print("COLUMN CONDITION NOT MET |", str(key) , str(self.spawned_formation[key[0]]))
+                            pass
 
             #ignoring emtpy enemy spaces -
             except KeyError:
@@ -1155,6 +1184,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
         display_update()
         clock.tick(fps)
 
+        #taking input
         for event in pygame.event.get():
 
             if event == pygame.QUIT:

@@ -12,7 +12,8 @@ class SHARECHAR():
     deathPop=[];deathBoom=[]
     for i in range(3):deathPop.append(pygame.transform.scale(pygame.image.load("./assets/images/SHARED/POP/Death_Pop-"+(str(i+1))+".png"),(60,60)).convert_alpha()) #creates,resizes,and appends
     for i in range(17):deathBoom.append(pygame.image.load("./assets/images/SHARED/BOOM/Death_Explosion-" + str(i+1) + ".png").convert_alpha()) #creates, doesn't resize
-    hurtBullet=pygame.image.load("./assets/images/bullets/hurtBullet.png").convert_alpha()
+    # hurtBullet=pygame.image.load("./assets/images/bullets/hurtBullet.png").convert_alpha()
+    health = pygame.image.load("./assets/images/SHARED/heal.png").convert_alpha()
 
 #UNIVERSAL SPRITES
 class charHat(pygame.sprite.Sprite):
@@ -68,6 +69,7 @@ class Bullet (pygame.sprite.Sprite):
 
     image = pygame.Surface((10, 10), pygame.SRCALPHA)
     pygame.draw.circle(image, "red", (5, 5), 5)
+    pygame.draw.circle(image, "white", (5, 5), 3)
     screen_rect = pygame.Rect(0,0,450,600)
     
     def __init__(self, pos: pygame.Vector2, direction: pygame.Vector2, speed: float = 5) -> None:
@@ -123,8 +125,9 @@ class Char(pygame.sprite.Sprite):
         #STATE CODE
         self.frames_in_state = 0 #counter for states. reset at the end of every state, but risen every frame, whether used or not.
 
-        #entrance code
-        #[put entrance code here]
+        #CONTAINER CODE -- ITEM DROPPER
+        self.container = None #a tuple, containing the type of item and the name of the item. the second index is usually unused if the item is not a bullet.
+
 
 
     def update(self):
@@ -196,11 +199,17 @@ class Char(pygame.sprite.Sprite):
             item.health -= 1
             self.health -= 1
             if self.health < 1:
+                #item code
+                if self.container is not None:
+                    if self.container[0] == "bullet":
+                        self.groups["universal"].add(BulletItem(self.player,self.container[1],image=None))
+                    elif self.container[0] == "health":
+                            self.groups["universal"].add(HealthItem(self.player))
                 #kill code
                 self.groups["universal"].add(diePop(self.rect.center)) #death effect
                 self.player.score += self.scorevalue #score rising
                 self.state = "dead" #alerting death
-                self.kill() #removing from sprite groups
+                self.kill() #removing from sprite group
 
     def formationUpdate(self,formationPos):
         #following formation
@@ -228,3 +237,48 @@ class Char(pygame.sprite.Sprite):
         return shoot_times
          
 
+class Item(pygame.sprite.Sprite):
+    screen_rect = pygame.Rect(0, 0, 450, 600)
+    image = pygame.Surface((30, 30), pygame.SRCALPHA)
+    pygame.draw.circle(image, "red", (0, 0), 15)
+
+    def __init__(self, player, spawn_coord = (255,0)):
+        """THESE ARE THE ITEMS THAT WILL SPAWN IN GAME
+        the item will refer to the specific file of the item, and the image file of the item.
+            make said files identical
+        The only exceptions are the bullets, since their image is contained in the bullet file"""
+        pygame.sprite.Sprite.__init__(self)
+        self.image = Item.image
+        self.rect = self.image.get_rect()
+        self.rect.center = spawn_coord
+        self.player = player
+
+    def update(self):
+        self.rect.y += 5
+        self.remove_off_screen()
+        if self.rect.colliderect(self.player.rect):
+            self.on_touch_player()
+
+    def on_touch_player(self):
+        #this is a default, and it gets changed later
+        self.kill()
+
+    def remove_off_screen(self):
+        if not Item.screen_rect.colliderect(self.rect): self.kill()
+
+class BulletItem(Item):
+    def __init__(self,player,name, image = None, spawn_coord = (255,0)):
+        Item.__init__(self,player=player, spawn_coord = spawn_coord)
+        self.name = name
+        if image is not None: self.image = image 
+    def on_touch_player(self):
+        self.player.bullet = self.name
+        self.kill()
+
+class HealthItem(Item):
+    def __init__(self,player, spawn_coord = (255,0) ):
+        Item.__init__(self,player=player,  spawn_coord = spawn_coord)
+        self.image = SHARECHAR.health
+    def on_touch_player(self):
+        self.player.health += 1
+        self.kill()

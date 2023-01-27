@@ -47,7 +47,10 @@ class data:
 
 
         #character
-        self.imports=['nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
+        self.imports = ['nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
+        self.bullets = ['bananas']
+        self.drop_health = 5 #how often it drops an extra life
+        self.drop_bullet = 10 #chance out of 100 it drops a bullet per level
         self.speed=1
         
 

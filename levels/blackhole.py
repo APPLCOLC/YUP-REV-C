@@ -48,6 +48,9 @@ class data:
 
         #character
         self.imports=['nope','fihs','stickman','spike','zapp']
+        self.bullets = ['bananas']
+        self.drop_health = 5  # how often it drops an extra life
+        self.drop_bullet = 50 #chance out of 100 it drops a bullet per level
         self.speed=1
         
 

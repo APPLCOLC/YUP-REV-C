@@ -5,7 +5,8 @@ import pygame
 #It also deletes itself if it touches a bullet.
 class Bullet(pygame.sprite.Sprite):
     image = pygame.Surface((10, 10), pygame.SRCALPHA)
-    pygame.draw.circle(image, "white", (5, 5), 5)
+    pygame.draw.circle(image, "black", (5, 5), 5)
+    pygame.draw.circle(image, "white", (5, 5), 4)
     screen_rect = pygame.Rect(0,0,450,600)
 
     def __init__(self, sound=None, img=None, args={"center":(0,0)}):

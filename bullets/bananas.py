@@ -4,9 +4,7 @@ import pygame
 #The default bullet simply travels to the other side of the stage and then gets deleted.
 #It also deletes itself if it touches a bullet.
 class Bullet(pygame.sprite.Sprite):
-    image = pygame.Surface((10, 10), pygame.SRCALPHA)
-    pygame.draw.circle(image, "black", (5, 5), 5)
-    pygame.draw.circle(image, "white", (5, 5), 4)
+    image = pygame.transform.scale(pygame.image.load("./assets/images/bullets/bananas.png"),(100,25)).convert_alpha()
     screen_rect = pygame.Rect(0,0,450,600)
 
     def __init__(self, sound=None, img=None, args={"center":(0,0)}):
@@ -17,7 +15,7 @@ class Bullet(pygame.sprite.Sprite):
         if sound is not None:
             sound.play()
 
-        self.rect = Bullet.image.get_rect()
+        self.rect = pygame.mask.from_surface(Bullet.image).get_rect()
         #This tells the bullet to spawn in the x coordinate of arg1 and the y coordinate of arg2.
         #These are, typically, fed with YUP's coordinates.
         self.rect.center = args["center"]

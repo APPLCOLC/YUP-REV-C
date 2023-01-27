@@ -1,9 +1,12 @@
 import pygame,random
 
-img = pygame.image.load("./assets/images/bullets/bullet.png")
+
 #The default bullet simply travels to the other side of the stage and then gets deleted.
 #It also deletes itself if it touches a bullet.
 class Bullet(pygame.sprite.Sprite):
+    img = pygame.Surface((30, 30), pygame.SRCALPHA)
+    pygame.draw.circle(img, "red", (0, 0), 30)
+    screen_rect = pygame.Rect(0, 0, 450, 600)
     def __init__(self, sound=None, img=img, args={"center":(0,0),"direction":0, "enemy_sprites":None}):
         pygame.sprite.Sprite.__init__(self)
 
