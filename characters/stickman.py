@@ -84,7 +84,7 @@ class Char(shared.Char):
             return
 
         # MOVING DOWN CODE
-        self.y_momentum+=0.2
+        self.y_momentum+=0.5
         self.rect.y+=self.y_momentum
 
         #RETURN CODE

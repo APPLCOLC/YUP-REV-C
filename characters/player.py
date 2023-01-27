@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
 
         #general values
         self.score = 0
-        self.health = 5
+        self.health = 3
         self.state = "idle"
         self.groups = groups
         self.loaded_bullets = loaded_bullets
@@ -118,13 +118,17 @@ class Player(pygame.sprite.Sprite):
                 if not self.moving[3] and not self.moving[2]:
                     self.moving[2] = True
                     self.jump_frames = 0
+                elif self.moving[3]:
+                    self.jump_frames = 55 if self.jump_frames<=40 else 60
             
-            #jumping up
+            #jumping down
             if event.key == pygame.K_s:
                 #only jumps if not jumping up or already jumping down
                 if not self.moving[2] and not self.moving[3]:
                     self.moving[3] = True
                     self.jump_frames = 0
+                elif self.moving[2]:
+                    self.jump_frames = 55 if self.jump_frames<=40 else 60
 
             #shooting
             if event.key == pygame.K_j or event.key == pygame.K_SPACE:
@@ -220,8 +224,8 @@ class Player(pygame.sprite.Sprite):
 
     def reset_movement(self):
         #movement declarations
-        self.moving = [False,False,False,False] #left, right, up, down
-        self.speeds = 0 
+        self.moving = [False,False,self.moving[2],self.moving[3]] #left, right, up, down
+        self.speed = 0
 
 
     def display_health(self,WIN,location_y=0):

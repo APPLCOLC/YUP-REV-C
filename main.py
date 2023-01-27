@@ -410,7 +410,7 @@ def display_score(score_value, coord, snap=True, shadow=True, color=(0, 0, 0), s
 
     if shadow: score_surface = score_font.render(str(score_value), True, color, shadow_color)
     else: score_surface = score_font.render(str(score_value), True, color)
-
+    
     score_rect = score_surface.get_rect()
 
     if snap:score_rect.right = coord[0]
