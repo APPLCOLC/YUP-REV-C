@@ -404,7 +404,7 @@ def short_load():
 
 
 """SCORE DISPLAY--------------------"""
-def display_score(score_value, coord, snap=True, shadow=True, color=(0, 0, 0), shadow_color=(255, 255, 255), size=20):
+def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20):
 
     score_font = pygame.font.Font("./assets/font/Setfont-Regular.ttf",size)
 
@@ -439,7 +439,8 @@ class BG:
 
         #beginning values
         self.bgY,self.bgX=0,0 #scroll stuff
-        self.curFrame=current_frame
+        self.curFrame = current_frame
+        self.photo_name = photo_name
         self.config=loaded[photo_name][0]
         self.dir=loaded[photo_name][1]
 

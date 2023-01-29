@@ -1,7 +1,0 @@
--new SPIKE entrance pattern
-
--give character drops (1/27/23)
--player bullet armor (1/27/23)
--player health boxes (1/27/23)
-
--Game over screen that tells you to screenshot your score
