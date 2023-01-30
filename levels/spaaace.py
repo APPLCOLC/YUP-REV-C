@@ -1,26 +1,8 @@
 import random
-"""HOW A LEVEL WORKS
--Class is defined
--Several values are defined within the class
-    -time limit
-    -intensity
-    -formation
--All of these values begin as 'None' when an instance of the class is created.
--Then, what fileReader.py will do is run the "level methods" to redefine the values.
--Example:
-    -levelReader.py loads "SPAAACE.py", which then creates all the values as None, just to begin
-    -levelReader.py uses the "lvl1" function to define all the values and then run the program.
-    -when lvl1 is over, it then runs "lvl2" to begin a new formation, then lvl2 to lvl3, so on and so forth.
-"""
 class data:
     
-    """
-    WORLD FILE INFORMATION
-    Init declares the values, aka creating them.
-    All the 'lvl' arguments will then modify said values for when the formation is created.
-    So, if the level is 1, lvl1 is run to modify the values.
-    """
     def __init__(self, level=None):
+
         #LEVEL INFORMATION
         self.worldInfo={
             "songname":'cabbage.mp3',

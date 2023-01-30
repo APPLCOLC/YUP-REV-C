@@ -40,7 +40,7 @@ for item in os.listdir("./characters"):
     the_code = "import characters." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_characters)
 
-# print(loaded_characters)
+from characters import shared
 
 """BACKGROUNDS---"""
 loaded_backgrounds = {}
@@ -162,50 +162,46 @@ for item in os.listdir("./bullets/"):
 class UiImages:
 
     #BEGIN AND END
-    beginImage = pygame.image.load("./assets/images/UI/BEGIN AND END/GET READY.png")
-    endImage = pygame.image.load("./assets/images/UI/BEGIN AND END/LEVEL COMPLETE.png")
+    beginImage = pygame.image.load("./assets/images/UI/BEGIN AND END/GET READY.png").convert_alpha()
+    endImage = pygame.image.load("./assets/images/UI/BEGIN AND END/LEVEL COMPLETE.png").convert_alpha()
 
     #ERRORS
-    error_title = pygame.image.load("./assets/images/UI/errors/error_occurred.png")
+    error_title = pygame.image.load("./assets/images/UI/errors/error_occurred.png").convert_alpha()
 
     #LOGO FOR TITLE
-    logo1 = pygame.image.load("./assets/images/UI/title/logo1.png")
-    logo2 = pygame.image.load("./assets/images/UI/title/logo2.png")
-    logo3 = pygame.image.load("./assets/images/UI/title/logo3.png")
-    title_bg_logo = [logo1, logo2, logo3]
-    del logo1, logo2, logo3
+    title_bg_logo = [
+        pygame.image.load("./assets/images/UI/title/logo1.png").convert_alpha(), 
+        pygame.image.load("./assets/images/UI/title/logo2.png").convert_alpha(), 
+        pygame.image.load("./assets/images/UI/title/logo3.png").convert_alpha()]
 
     #PAUSE GRAPHIC
-    pause1=pygame.image.load('./assets/images/UI/pause/paus\'d (1).png')
-    pause2=pygame.image.load('./assets/images/UI/pause/paus\'d (2).png')
-    pause3=pygame.image.load('./assets/images/UI/pause/paus\'d (3).png')
-
-    pause=[pause1,pause2,pause3]
-    for _ in range(len(pause)):
-        pause[_]=pygame.transform.scale(pause[_],(450,150)).convert_alpha()
-    del pause1,pause2,pause3
+    pause = [ 
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (1).png'),(450,150)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (2).png'),(450,150)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (3).png'),(450,150)).convert_alpha(),
+    ]
 
     #PRESS SPACE
-    press_space = pygame.image.load("./assets/images/UI/space.png")
+    press_space = pygame.image.load("./assets/images/UI/space.png").convert_alpha()
 
     #BUTTONS
-    quit_button = pygame.image.load("./assets/images/UI/quit_button.png")
-    quit_button_pressed = pygame.image.load("./assets/images/UI/quit_button_pressed.png")
+    quit_button = pygame.image.load("./assets/images/UI/quit_button.png").convert_alpha()
+    quit_button_pressed = pygame.image.load("./assets/images/UI/quit_button_pressed.png").convert_alpha()
     QUIT = [quit_button, quit_button_pressed]
     del quit_button, quit_button_pressed
 
-    start_button = pygame.image.load("./assets/images/UI/start_button.png")
-    start_button_pressed = pygame.image.load("./assets/images/UI/start_button_pressed.png")
+    start_button = pygame.image.load("./assets/images/UI/start_button.png").convert_alpha()
+    start_button_pressed = pygame.image.load("./assets/images/UI/start_button_pressed.png").convert_alpha()
     START = [start_button, start_button_pressed]
     del start_button, start_button_pressed
 
-    options_button = pygame.image.load("./assets/images/UI/options_button.png")
-    options_button_pressed = pygame.image.load("./assets/images/UI/options_button_pressed.png")
+    options_button = pygame.image.load("./assets/images/UI/options_button.png").convert_alpha()
+    options_button_pressed = pygame.image.load("./assets/images/UI/options_button_pressed.png").convert_alpha()
     OPTIONS = [options_button, options_button_pressed]
     del options_button, options_button_pressed
 
-    continue_button = pygame.image.load("./assets/images/UI/continue_button.png")
-    continue_button_pressed = pygame.image.load("./assets/images/UI/continue_button_pressed.png")
+    continue_button = pygame.image.load("./assets/images/UI/continue_button.png").convert_alpha()
+    continue_button_pressed = pygame.image.load("./assets/images/UI/continue_button_pressed.png").convert_alpha()
     CONTINUE = [continue_button, continue_button_pressed]
     del continue_button,continue_button_pressed
 
@@ -213,29 +209,30 @@ class UiImages:
     loading = pygame.image.load("./assets/images/UI/loading/load_small.png")
 
     #GENERAL
-    yes = pygame.image.load("./assets/images/UI/YES.png")
-    yes = pygame.transform.scale(yes, (50, 25))
-    no = pygame.image.load("./assets/images/UI/NO.png")
-    no = pygame.transform.scale(no, (50, 25))
-    on = pygame.image.load("./assets/images/UI/ON.png")
-    off = pygame.image.load("./assets/images/UI/OFF.png")
-    checkmark = pygame.image.load("./assets/images/UI/CHECKMARK.png")
-    xmark = pygame.image.load("./assets/images/UI/X.png")
-    slider = pygame.image.load("./assets/images/UI/slider.png")
-    knob = pygame.image.load("./assets/images/UI/knob.png")
+    yes = pygame.transform.scale(pygame.image.load("./assets/images/UI/YES.png"), (50, 25)).convert_alpha()
+    no = pygame.transform.scale(pygame.image.load("./assets/images/UI/NO.png"), (50, 25)).convert_alpha()
+    on = pygame.image.load("./assets/images/UI/ON.png").convert_alpha()
+    off = pygame.image.load("./assets/images/UI/OFF.png").convert_alpha()
+    checkmark = pygame.image.load("./assets/images/UI/CHECKMARK.png").convert_alpha()
+    xmark = pygame.image.load("./assets/images/UI/X.png").convert_alpha()
+    slider = pygame.image.load("./assets/images/UI/slider.png").convert_alpha()
+    knob = pygame.image.load("./assets/images/UI/knob.png").convert_alpha()
 
     #SETTINGS IMAGES
-    option_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/bg.png"), (450, 600))
-    option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30))
-    option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30))
+    option_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/bg.png"), (450, 600)).convert_alpha()
+    option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30)).convert_alpha()
+    option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30)).convert_alpha()
 
     #BAGKGROUNDS
-    title_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/title/background.png"), (450, 600))
-    error_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"), (450, 600))
-    load_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/splash.png"), (450, 600))
+    title_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/title/background.png"), (450, 600)).convert_alpha()
+    error_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"), (450, 600)).convert_alpha()
+    load_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/splash.png"), (450, 600)).convert_alpha()
 
     #CURSOR
-    cursor = pygame.image.load("./assets/images/UI/LIVES/000.png")
+    cursor = pygame.image.load("./assets/images/UI/LIVES/000.png").convert_alpha()
+
+    #GAME OVER
+    game_over_sign = pygame.image.load("./assets/images/UI/GAME OVER.png").convert_alpha()
 
 ui=UiImages #this creates an object of the class. this is what everything refers to
 
@@ -403,10 +400,10 @@ def short_load():
     pygame.display.update()
 
 
-"""SCORE DISPLAY--------------------"""
+"""TEXT DISPLAY--------------------"""
 def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20):
 
-    score_font = pygame.font.Font("./assets/font/Setfont-Regular.ttf",size)
+    score_font = pygame.font.Font("./assets/font/terminus.ttf",size)
 
     if shadow: score_surface = score_font.render(str(score_value), True, color, shadow_color)
     else: score_surface = score_font.render(str(score_value), True, color)
@@ -447,7 +444,7 @@ class BG:
 
     #This is the code that will run on-frame.
     #It does not display the background, just update the current image to *be* displayed.
-    def update(self):
+    def update(self, scroll_values : tuple = None):
         # print(self.photoName)
 
         window.fill("black")#initial screen fill in case of transparency
@@ -457,8 +454,12 @@ class BG:
         if self.config is not None:
             #scroll code
             self.curFrame += 1
-            self.bgY += self.config['scrollVert']
-            self.bgX += self.config['scrollHoriz']
+            if scroll_values is None:
+                self.bgY += self.config['scrollVert']
+                self.bgX += self.config['scrollHoriz']
+            else:
+                self.bgY += scroll_values[1]
+                self.bgX += scroll_values[0]
             if self.bgY >= 600 or self.bgY <= -600: self.bgY=0
             if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
 
@@ -582,6 +583,7 @@ class Formation:
         #self-explanatory
         if self.state == "idle": self.idle()
         elif self.state == "start": self.start()
+        elif self.state == "exit": self.exit()
 
         # self.update_size()
         self.update_character_formation_pos()
@@ -660,6 +662,17 @@ class Formation:
 
             #deleting index 0 so the next one is in line
             self.spawn_list_indexes.pop(0)
+
+    def exit(self):
+        self.current_frame += 1
+
+        if self.current_frame >= 6:
+            self.current_frame = 0
+            universal_group.add(shared.dieBoom(self.spawned_formation[0][0].rect.center, (50, 50)))
+            self.spawned_formation[0][0].state = "dead"
+            self.spawned_formation[0][0].kill()
+
+
 
     def calculate_attack_time(self):
         #calculating when to make a character attack
@@ -819,8 +832,8 @@ class Formation:
 """LEVEL ASSET CODE--------------------"""
 class Level:
     def __init__(self, player, world_num):
-        with open("levels/worldOrder.txt", "r") as data:
-            self.worldOrder=eval(data.read())
+        with open("levels/worldOrder.txt", "r") as _:
+            self.worldOrder=eval(_.read())
 
         self.player = player
         self.level = 1
@@ -1219,6 +1232,118 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 
 
 
+"""GAME OVER----------------------"""
+def game_over(level_class : Level = None, score : int = 0):
+    run = True
+    clock = pygame.time.Clock()
+    fps = 60
+
+    """THERE ARE TWO STATES: slowdown and results
+    slowdown will slow both the background and formation down, eventually throwing the formation offscreen
+    results simply displays the score over a cute little game over image"""
+    state = "slowdown"
+    """the results state is a number that pretty much goes [sign animation, score display, quote display, wait, fly down]"""
+    state_results = 0
+
+
+    """it fetches the background image in order to remove the bulk of BG"""
+    bg_image_1 = level_class.bg.dir[0]
+    """it also fetches the scroll values as to not modify the original config file"""
+    scroll_values = [level_class.bg.config['scrollHoriz'],level_class.bg.config['scrollVert']]
+
+    """Stopping the music."""
+    sounds.stop_song()
+    """Killing the formation"""
+    level_class.form.state = "exit"
+
+    """game over image positioning"""
+    game_over_image_x = 0
+    """pause stops the game over thing from progressing"""
+    center = 225-(ui.game_over_sign.get_width()/2)
+
+    """for state 1 - this is a counter to give the score more personality"""
+    score_counter = 0
+
+    while run:
+        """Updating the time, FPS CAP"""
+        clock.tick(fps)
+
+        if state == "slowdown":
+
+            """THE BACKGROUND SLOWDOWN
+            this still uses the background class, and it begins to slow down the scroll speed of the background if there is any
+            when the background speed hits 0.01 or less, or if there is no config, it kills the background, and sets the state to "results" """
+            if level_class.bg.config is not None and (scroll_values[1]>0.1 or scroll_values[0]>0.1):
+                """when the background and formation are still alive and well"""
+                scroll_values[0] *= 0.99
+                scroll_values[1]*=0.99
+                level_class.bg.update(scroll_values = scroll_values)
+                level_class.bg.display_bg()
+                """updating the formation, including deleting the characters"""
+                level_class.form.update()
+            elif level_class.bg.config is None or (scroll_values[1]<=0.1 or scroll_values[0]<=0.1):
+                """it will just kill the bg if there is no config present, meaning there is no scroll"""
+                level_class.bg.destroy()
+                level_class.form.destroy()
+                del level_class.form, level_class.bg
+                enemy_group.empty()
+                player_group.empty()
+                bullet_group.empty()
+                universal_group.empty()
+                state = "results"
+
+        
+        elif state == "results":
+            """THE ACTUAL RESULTS CODE
+            this is based on the state, either 0,1,2, or 3.
+            the state of 0 is kind of unneeded since pause_x exists but whatever"""
+
+            if state_results == 0 and game_over_image_x == 200:
+                state_results = 1
+
+            if state_results == 0 or state_results == 3:
+                """beginning and end code"""
+                game_over_image_x += 1
+
+
+            elif state_results == 1:
+                if abs(score_counter - score) > 15:
+                    """displaying score"""
+                    score_counter = score_counter + 11
+                else: 
+                    score_counter = score
+                    state_results = 2
+
+            elif state_results == 2:
+                """displaying funny quote"""
+                pass
+
+            window.blit(bg_image_1,(center, 0))
+            window.blit(ui.game_over_sign,(center, 0.05*((game_over_image_x-200)**2) ))
+
+
+
+        #handling EXITING
+        for event in pygame.event.get():
+            if event == pygame.QUIT:
+                run = False
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
+
+        """RETURNING THE CODE
+        game_over_image_x is used as its the counter that is used at the beginning and end"""
+        if game_over_image_x > 1000: return
+
+        """DRAWING ITEMS
+        the universal group draws all the sprites at the end
+        if it did it before, the background would go over it"""
+        universal_group.update()
+        universal_group.draw(window)
+        pygame.display.update()
+
+
 
 """GAMEPLAY ASSETS--------------------"""
 def play(bullet_shared=loaded_bullets["shared"],settings=None):
@@ -1291,7 +1416,6 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
     switch_frames=0
 
     while run:
-        # print(str(clock.get_fps()),str(player.score))
 
         #DEBUG REMOVE
         switch_frames+=1
@@ -1313,6 +1437,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
         #game over initialization
         if player.state == "dead":
+            game_over(level_class=level_class)
             exit_state()
             return "title"
 

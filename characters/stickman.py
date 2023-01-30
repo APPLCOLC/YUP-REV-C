@@ -71,8 +71,7 @@ class Char(shared.Char):
             self.locked_in=True
             self.state="attack"
             #VISUAL EXPLOSION
-            explosion=shared.dieBoom(self.rect.center,(50,50))
-            self.groups["universal"].add(explosion)
+            self.groups["universal"].add(shared.dieBoom(self.rect.center,(50,50)))
         self.y_momentum=-5
 
 

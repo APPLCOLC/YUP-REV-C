@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
 
         #general values
         self.score = 0
-        self.health = 3
+        self.health = 1
         self.state = "idle"
         self.groups = groups
         self.loaded_bullets = loaded_bullets
@@ -119,7 +119,7 @@ class Player(pygame.sprite.Sprite):
                     self.moving[2] = True
                     self.jump_frames = 0
                 elif self.moving[3]:
-                    self.jump_frames = 55 if self.jump_frames<=40 else 60
+                    self.jump_frames = 60
             
             #jumping down
             if event.key == pygame.K_s:
@@ -128,7 +128,7 @@ class Player(pygame.sprite.Sprite):
                     self.moving[3] = True
                     self.jump_frames = 0
                 elif self.moving[2]:
-                    self.jump_frames = 55 if self.jump_frames<=40 else 60
+                    self.jump_frames = 60
 
             #shooting
             if event.key == pygame.K_j or event.key == pygame.K_SPACE:
@@ -186,7 +186,8 @@ class Player(pygame.sprite.Sprite):
         #kill code
         if self.health <= 0:
             self.state = "dead"
-            self.sounds.sounds["ouch.mp3"].play()
+            self.sounds.sounds["death.mp3"].play()
+            self.groups["universal"].add(shared.dieBoom(self.rect.center,(50,50)))
             # self.health = 3
             self.kill()
 
