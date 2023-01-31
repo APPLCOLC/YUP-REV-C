@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
 
         #general values
         self.score = 0
-        self.health = 1
+        self.health = 3
         self.state = "idle"
         self.groups = groups
         self.loaded_bullets = loaded_bullets

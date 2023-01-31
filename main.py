@@ -401,7 +401,7 @@ def short_load():
 
 
 """TEXT DISPLAY--------------------"""
-def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20):
+def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20, snap_direction = "r"):
 
     score_font = pygame.font.Font("./assets/font/terminus.ttf",size)
 
@@ -410,7 +410,8 @@ def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 2
     
     score_rect = score_surface.get_rect()
 
-    if snap:score_rect.right = coord[0]
+    if snap and snap_direction == 'r':score_rect.right = coord[0] ; score_rect.y = coord[1]
+    elif snap and snap_direction == 'l':score_rect.left = coord[0] ; score_rect.y = coord[1]
     else: score_rect.center = coord
 
     window.blit(score_surface, score_rect)
@@ -1238,6 +1239,16 @@ def game_over(level_class : Level = None, score : int = 0):
     clock = pygame.time.Clock()
     fps = 60
 
+    quote = random.choice([
+        "sheesh","you suck","BURN DOWN THE MCDONALD","nop\ne","is your monitor on","i don't know what to put on the screen","get better","greasy grove","ahhhhhhhhhhhhhh","computer aids cheese","i love men",
+        "POOPENFARTEN ","FORT NITE gntals","this is a sentence","ink sacs","grummy bear","shloppy", "TOOTH PASTE !" , "JOHNNY BALLSICKLE", "DO NOT THROW BANANAS AT GOATS" , "I AM THE MASTER ABLEIST",
+        "COMMUNISM", "CAPITALISM", "ANARCHISM", "CLOROX SUCKS", "KRUEGER CLICKER", "WHERE IS MY WIFE?", "PROMORTOIJNNSOFKJAAS:LFAJFEO:DFKJIHADFH" , "?????", "EDGY WOLF TEEN MEETS BAND KID",
+        "TOXIC MASCULINITY", "SQUID", "THE LOBOTOMY IS CONFIRMED", "TODAY IS THE LAST DAY", "I AM BALDING    ?",   "   W E D N E S D A Y   ",
+        "THAT'S WHAT I'M SAYING", "WHAT THE DOG DOIN", "HELP", "I LOVE THE CCP", "SAVE THE TURTLES", "SAVE THE TREES", "I HATE EARTH DAY", "     WHEN", "when", " FORT     NIGHT   "
+    ]).upper()
+    quote_index = 0
+    built_quote = ""
+
     """THERE ARE TWO STATES: slowdown and results
     slowdown will slow both the background and formation down, eventually throwing the formation offscreen
     results simply displays the score over a cute little game over image"""
@@ -1264,6 +1275,9 @@ def game_over(level_class : Level = None, score : int = 0):
     """for state 1 - this is a counter to give the score more personality"""
     score_counter = 0
 
+    """frame counter that is used for checking how long each result_state should be in"""
+    timer = 0
+
     while run:
         """Updating the time, FPS CAP"""
         clock.tick(fps)
@@ -1275,12 +1289,13 @@ def game_over(level_class : Level = None, score : int = 0):
             when the background speed hits 0.01 or less, or if there is no config, it kills the background, and sets the state to "results" """
             if level_class.bg.config is not None and (scroll_values[1]>0.1 or scroll_values[0]>0.1):
                 """when the background and formation are still alive and well"""
-                scroll_values[0] *= 0.99
-                scroll_values[1]*=0.99
+                scroll_values[0] *= 0.95
+                scroll_values[1]*=0.95
                 level_class.bg.update(scroll_values = scroll_values)
                 level_class.bg.display_bg()
                 """updating the formation, including deleting the characters"""
                 level_class.form.update()
+
             elif level_class.bg.config is None or (scroll_values[1]<=0.1 or scroll_values[0]<=0.1):
                 """it will just kill the bg if there is no config present, meaning there is no scroll"""
                 level_class.bg.destroy()
@@ -1294,10 +1309,12 @@ def game_over(level_class : Level = None, score : int = 0):
 
         
         elif state == "results":
+            # print(state_results)
             """THE ACTUAL RESULTS CODE
             this is based on the state, either 0,1,2, or 3.
             the state of 0 is kind of unneeded since pause_x exists but whatever"""
 
+            """unrelated updates that play in several instances"""
             if state_results == 0 and game_over_image_x == 200:
                 state_results = 1
 
@@ -1307,16 +1324,28 @@ def game_over(level_class : Level = None, score : int = 0):
 
 
             elif state_results == 1:
-                if abs(score_counter - score) > 15:
-                    """displaying score"""
-                    score_counter = score_counter + 11
-                else: 
+                """updating score - graphical score is displayed elsewhere"""
+                score_counter = score_counter + int(round( ((score-score_counter)/50) , 0 )) if abs(score_counter - score) > 50 else score
+
+                """exits if condition is met and timer is over"""
+                if abs(score_counter - score) < 50:
                     score_counter = score
+                    timer = 0
                     state_results = 2
 
             elif state_results == 2:
+                """updating timer"""
+                timer += 1
                 """displaying funny quote"""
-                pass
+                if timer >= 3 and built_quote != quote:
+                    # print("building onto quote")
+                    built_quote += quote[quote_index]
+                    quote_index += 1
+                    timer = 0
+                elif timer >= 300:
+                    timer = 0
+                    state_results = 3
+
 
             window.blit(bg_image_1,(center, 0))
             window.blit(ui.game_over_sign,(center, 0.05*((game_over_image_x-200)**2) ))
@@ -1334,13 +1363,18 @@ def game_over(level_class : Level = None, score : int = 0):
 
         """RETURNING THE CODE
         game_over_image_x is used as its the counter that is used at the beginning and end"""
-        if game_over_image_x > 1000: return
+        if game_over_image_x > 300: return
 
         """DRAWING ITEMS
         the universal group draws all the sprites at the end
         if it did it before, the background would go over it"""
         universal_group.update()
         universal_group.draw(window)
+        """this draws the score and the quote"""
+        if state_results == 1 or state_results == 2:
+            display_score(score_counter, coord = (125,150), snap_direction='l', size = 35)
+        if state_results == 2:
+            display_score(built_quote, coord = (125,200), snap_direction = 'l', size = 25)
         pygame.display.update()
 
 
@@ -1437,7 +1471,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
         #game over initialization
         if player.state == "dead":
-            game_over(level_class=level_class)
+            game_over(level_class=level_class, score=player.score)
             exit_state()
             return "title"
 
