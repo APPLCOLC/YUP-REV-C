@@ -6,7 +6,6 @@ import pygame,math,time,os,random
 """DISPLAY INITIALIZATION--------------------"""
 pygame.display.set_caption("YUP")
 
-
 icon =  pygame.image.load("assets/images/UI/icon.ico")
 pygame.display.set_icon(icon)
 window = pygame.display.set_mode((450, 600), pygame.SCALED)
@@ -21,9 +20,93 @@ player_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 
+clock = pygame.time.Clock()
+
 # input("AFTER INITIALIZING PYGAME")
 
 """LOADING#################################################################"""
+
+"""UI IMAGES---"""
+class UiImages:
+
+    #BEGIN AND END
+    beginImage = pygame.image.load("./assets/images/UI/BEGIN AND END/GET READY.png").convert_alpha()
+    endImage = pygame.image.load("./assets/images/UI/BEGIN AND END/LEVEL COMPLETE.png").convert_alpha()
+
+    #ERRORS
+    error_title = pygame.image.load("./assets/images/UI/errors/error_occurred.png").convert_alpha()
+
+    #LOGO FOR TITLE
+    title_bg_logo = [
+        pygame.image.load("./assets/images/UI/title/logo1.png").convert_alpha(), 
+        pygame.image.load("./assets/images/UI/title/logo2.png").convert_alpha(), 
+        pygame.image.load("./assets/images/UI/title/logo3.png").convert_alpha()]
+
+    #PAUSE GRAPHIC
+    pause = [ 
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (1).png'),(450,150)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (2).png'),(450,150)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (3).png'),(450,150)).convert_alpha(),
+    ]
+
+    #PRESS SPACE
+    press_space = pygame.image.load("./assets/images/UI/space.png").convert_alpha()
+
+    #BUTTONS
+    quit_button = pygame.image.load("./assets/images/UI/quit_button.png").convert_alpha()
+    quit_button_pressed = pygame.image.load("./assets/images/UI/quit_button_pressed.png").convert_alpha()
+    QUIT = [quit_button, quit_button_pressed]
+    del quit_button, quit_button_pressed
+
+    start_button = pygame.image.load("./assets/images/UI/start_button.png").convert_alpha()
+    start_button_pressed = pygame.image.load("./assets/images/UI/start_button_pressed.png").convert_alpha()
+    START = [start_button, start_button_pressed]
+    del start_button, start_button_pressed
+
+    options_button = pygame.image.load("./assets/images/UI/options_button.png").convert_alpha()
+    options_button_pressed = pygame.image.load("./assets/images/UI/options_button_pressed.png").convert_alpha()
+    OPTIONS = [options_button, options_button_pressed]
+    del options_button, options_button_pressed
+
+    continue_button = pygame.image.load("./assets/images/UI/continue_button.png").convert_alpha()
+    continue_button_pressed = pygame.image.load("./assets/images/UI/continue_button_pressed.png").convert_alpha()
+    CONTINUE = [continue_button, continue_button_pressed]
+    del continue_button,continue_button_pressed
+
+    #LOADING
+    loading = pygame.image.load("./assets/images/UI/loading/load_small.png")
+
+    #GENERAL
+    yes = pygame.transform.scale(pygame.image.load("./assets/images/UI/YES.png"), (50, 25)).convert_alpha()
+    no = pygame.transform.scale(pygame.image.load("./assets/images/UI/NO.png"), (50, 25)).convert_alpha()
+    on = pygame.image.load("./assets/images/UI/ON.png").convert_alpha()
+    off = pygame.image.load("./assets/images/UI/OFF.png").convert_alpha()
+    checkmark = pygame.image.load("./assets/images/UI/CHECKMARK.png").convert_alpha()
+    xmark = pygame.image.load("./assets/images/UI/X.png").convert_alpha()
+    slider = pygame.image.load("./assets/images/UI/slider.png").convert_alpha()
+    knob = pygame.image.load("./assets/images/UI/knob.png").convert_alpha()
+
+    #SETTINGS IMAGES
+    option_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/bg.png"), (450, 600)).convert_alpha()
+    option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30)).convert_alpha()
+    option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30)).convert_alpha()
+
+    #BAGKGROUNDS
+    title_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/title/background.png"), (450, 600)).convert_alpha()
+    error_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"), (450, 600)).convert_alpha()
+    load_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/splash.png"), (450, 600)).convert_alpha()
+
+    #CURSOR
+    cursor = pygame.image.load("./assets/images/UI/LIVES/000.png").convert_alpha()
+
+    #GAME OVER
+    game_over_sign = pygame.image.load("./assets/images/UI/GAME OVER.png").convert_alpha()
+
+ui=UiImages #this creates an object of the class. this is what everything refers to
+
+#"long loading" before it is defined, just so you aren't sitting there looking at nothing
+window.blit(ui.load_bg, (0, 0))
+pygame.display.update()
 
 """CHARACTERS"""
 loaded_characters = {}
@@ -155,86 +238,6 @@ for item in os.listdir("./bullets/"):
     #importing bullets
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
-
-# input("LOADED BULLETS")
-
-"""UI IMAGES---"""
-class UiImages:
-
-    #BEGIN AND END
-    beginImage = pygame.image.load("./assets/images/UI/BEGIN AND END/GET READY.png").convert_alpha()
-    endImage = pygame.image.load("./assets/images/UI/BEGIN AND END/LEVEL COMPLETE.png").convert_alpha()
-
-    #ERRORS
-    error_title = pygame.image.load("./assets/images/UI/errors/error_occurred.png").convert_alpha()
-
-    #LOGO FOR TITLE
-    title_bg_logo = [
-        pygame.image.load("./assets/images/UI/title/logo1.png").convert_alpha(), 
-        pygame.image.load("./assets/images/UI/title/logo2.png").convert_alpha(), 
-        pygame.image.load("./assets/images/UI/title/logo3.png").convert_alpha()]
-
-    #PAUSE GRAPHIC
-    pause = [ 
-        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (1).png'),(450,150)).convert_alpha(),
-        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (2).png'),(450,150)).convert_alpha(),
-        pygame.transform.scale(pygame.image.load('./assets/images/UI/pause/paus\'d (3).png'),(450,150)).convert_alpha(),
-    ]
-
-    #PRESS SPACE
-    press_space = pygame.image.load("./assets/images/UI/space.png").convert_alpha()
-
-    #BUTTONS
-    quit_button = pygame.image.load("./assets/images/UI/quit_button.png").convert_alpha()
-    quit_button_pressed = pygame.image.load("./assets/images/UI/quit_button_pressed.png").convert_alpha()
-    QUIT = [quit_button, quit_button_pressed]
-    del quit_button, quit_button_pressed
-
-    start_button = pygame.image.load("./assets/images/UI/start_button.png").convert_alpha()
-    start_button_pressed = pygame.image.load("./assets/images/UI/start_button_pressed.png").convert_alpha()
-    START = [start_button, start_button_pressed]
-    del start_button, start_button_pressed
-
-    options_button = pygame.image.load("./assets/images/UI/options_button.png").convert_alpha()
-    options_button_pressed = pygame.image.load("./assets/images/UI/options_button_pressed.png").convert_alpha()
-    OPTIONS = [options_button, options_button_pressed]
-    del options_button, options_button_pressed
-
-    continue_button = pygame.image.load("./assets/images/UI/continue_button.png").convert_alpha()
-    continue_button_pressed = pygame.image.load("./assets/images/UI/continue_button_pressed.png").convert_alpha()
-    CONTINUE = [continue_button, continue_button_pressed]
-    del continue_button,continue_button_pressed
-
-    #LOADING
-    loading = pygame.image.load("./assets/images/UI/loading/load_small.png")
-
-    #GENERAL
-    yes = pygame.transform.scale(pygame.image.load("./assets/images/UI/YES.png"), (50, 25)).convert_alpha()
-    no = pygame.transform.scale(pygame.image.load("./assets/images/UI/NO.png"), (50, 25)).convert_alpha()
-    on = pygame.image.load("./assets/images/UI/ON.png").convert_alpha()
-    off = pygame.image.load("./assets/images/UI/OFF.png").convert_alpha()
-    checkmark = pygame.image.load("./assets/images/UI/CHECKMARK.png").convert_alpha()
-    xmark = pygame.image.load("./assets/images/UI/X.png").convert_alpha()
-    slider = pygame.image.load("./assets/images/UI/slider.png").convert_alpha()
-    knob = pygame.image.load("./assets/images/UI/knob.png").convert_alpha()
-
-    #SETTINGS IMAGES
-    option_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/bg.png"), (450, 600)).convert_alpha()
-    option_30 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS30.png"),(50,30)).convert_alpha()
-    option_60 = pygame.transform.scale(pygame.image.load("./assets/images/UI/options/FPS60.png"),(50,30)).convert_alpha()
-
-    #BAGKGROUNDS
-    title_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/title/background.png"), (450, 600)).convert_alpha()
-    error_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/errors/bg.png"), (450, 600)).convert_alpha()
-    load_bg = pygame.transform.scale(pygame.image.load("./assets/images/UI/splash.png"), (450, 600)).convert_alpha()
-
-    #CURSOR
-    cursor = pygame.image.load("./assets/images/UI/LIVES/000.png").convert_alpha()
-
-    #GAME OVER
-    game_over_sign = pygame.image.load("./assets/images/UI/GAME OVER.png").convert_alpha()
-
-ui=UiImages #this creates an object of the class. this is what everything refers to
 
 # input("LOADED UI")
 
@@ -389,10 +392,7 @@ def debug_displays(sprite_class_dict, variables, time_passed, fps, level, win=No
 """LOADING--------------------"""
 def long_load():
     window.blit(ui.load_bg, (0, 0))
-
     pygame.display.update()
-
-long_load()
 
 def short_load():
     window.blit(ui.loading, (0, 0))
@@ -504,7 +504,6 @@ class BG:
             del _
         for _ in dir(self):
             del _
-
 
 
 """FORMATION FOR GAMEPLAY--------------------"""
@@ -829,7 +828,6 @@ class Formation:
         self.state = "complete"
 
 
-
 """LEVEL ASSET CODE--------------------"""
 class Level:
     def __init__(self, player, world_num):
@@ -929,7 +927,6 @@ def title():
     run = True
 
     fps = 15 #TEST ENABLE
-    clock = pygame.time.Clock()
     start = time.time()
     frame = 0
 
@@ -994,7 +991,7 @@ def title():
 
                 #This code checks for an enter press.
                 #It will always lock out the enter button if it is being held down. It waits until enter is released to register again.
-                if event.key == pygame.K_j:
+                if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                     sounds.sounds["select.mp3"].play()
 
                     #starting gameplay, returns a value telling main to use gameplay
@@ -1021,8 +1018,6 @@ def title():
                 if event.key == pygame.K_s:
                     if index < 3: index +=1
                     sounds.sounds["scroll.mp3"].play()
-
-
 
 
 """OPTIONS ASSETS--------------------"""
@@ -1074,7 +1069,6 @@ def options():
         pygame.display.update() #TEST ENABLE
     redraw_window()
 
-    clock=pygame.time.Clock()
     fps=15
 
     while run:
@@ -1103,7 +1097,7 @@ def options():
                     sounds.sounds["scroll.mp3"].play()
                     index -= 1
                     # print(index)
-                if event.key == pygame.K_j:
+                if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                     sounds.sounds["select.mp3"].play()
                     # list(settings)[index] is the key name
                     key_index = list(settings)[index]
@@ -1152,8 +1146,6 @@ def options():
                 redraw_window()
 
 
-
-
 """PAUSE ASSETS--------------------"""
 def pause(img=None): #it takes in the UI images as an argument to lower RAM usage and prevent leakage :)
     """-----PLEASE NOTE !-----
@@ -1166,7 +1158,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 
 
     #sets the values
-    fps=60;run=True;clock = pygame.time.Clock();index = 1
+    fps=60;run=True;index = 1
     pause_start = time.time();graphic_start = time.time()
     graphic_frame = 1
     sounds.sounds["select2.mp3"].play()
@@ -1215,7 +1207,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
                 if event.key == pygame.K_s:
                     if index < 3: index += 1
                     sounds.sounds["scroll.mp3"].play()
-                if event.key == pygame.K_j:
+                if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                     sounds.sounds["select2.mp3"].play()
                     if index == 1:
                         sounds.ost["pause.mp3"].stop()
@@ -1236,7 +1228,6 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 """GAME OVER----------------------"""
 def game_over(level_class : Level = None, score : int = 0):
     run = True
-    clock = pygame.time.Clock()
     fps = 60
 
     quote = random.choice([
@@ -1379,6 +1370,28 @@ def game_over(level_class : Level = None, score : int = 0):
 
 
 
+"""LEVEL COMPLETE"""
+def level_complete(level_class : Level = None, player : loaded_characters["player"].Player = None):
+    #startup info
+    FPS = 60
+    run = True
+    
+    """slight pseudocode
+    heavily speeds up the bg
+        when the bg hits a specific speed, do the level class's "advance world" feature
+        then, slow the bg back down to the speed intended"""
+
+
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            if event.type == pygame.KEYDOWN:
+                pass
+
+
+
 """GAMEPLAY ASSETS--------------------"""
 def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
@@ -1412,7 +1425,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
         fps = 60 #TEST ENABLE
 
     run = True  # Variable that tells the game to loop
-    clock = pygame.time.Clock()  # The clock is essentially just a thing that tells the computer to update the screen after a set period of time.
+
     # LEVEL INITIALIZATION
     level_class = Level(player=player,world_num=world_num)
 
@@ -1490,7 +1503,7 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
             if event.type == pygame.KEYDOWN:
 
                 # pause code
-                if event.key == pygame.K_i:
+                if event.key == pygame.K_i or event.key == pygame.K_ESCAPE:
                     # freezes everything and opens the pause menu
                     player.reset_movement()
 
