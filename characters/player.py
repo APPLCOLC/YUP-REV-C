@@ -51,7 +51,7 @@ class Player(pygame.sprite.Sprite):
         """the bullet counts as everything, including the shield.
         Instead of checking for a separate value, it just checks if bullet is anything but "default"
         It uses this for hit detection, and all that jazz."""
-        self.bullet = "default" #can be changed for power-ups, temporarily
+        self.bullet = "strawberry" #can be changed for power-ups, temporarily
 
     
     def update(self):
