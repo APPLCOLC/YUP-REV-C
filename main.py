@@ -442,6 +442,19 @@ class BG:
         self.config=loaded[photo_name][0]
         self.dir=loaded[photo_name][1]
 
+        #default self.config 
+        self.config = {
+            "speed":1, 
+            "reverse":False,
+            "flip_vert":False,
+            "flip_horiz":False,
+            "opacity":255, #defaults at 255
+            "scrollVert":0, #for off, select 0
+            "scrollHoriz":0, #for off, select 0
+            "interpolate":True, #transitions first and last frames to loop better
+            } if self.config == None else self.config 
+
+
 
     #This is the code that will run on-frame.
     #It does not display the background, just update the current image to *be* displayed.
@@ -450,28 +463,20 @@ class BG:
 
         window.fill("black")#initial screen fill in case of transparency
 
-
-        #present config
-        if self.config is not None:
-            #scroll code
-            self.curFrame += 1
-            if scroll_values is None:
-                self.bgY += self.config['scrollVert']
-                self.bgX += self.config['scrollHoriz']
-            else:
-                self.bgY += scroll_values[1]
-                self.bgX += scroll_values[0]
-            if self.bgY >= 600 or self.bgY <= -600: self.bgY=0
-            if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
-
-            #RESETTING THE FRAME
-            if self.curFrame>=len(self.dir):self.curFrame=0
-
-        #absent config
+        #scroll code
+        self.curFrame += 1
+        if scroll_values is None:
+            self.bgY += self.config['scrollVert']
+            self.bgX += self.config['scrollHoriz']
         else:
-            self.curFrame+=1 #advancing frame
+            self.bgY += scroll_values[1]
+            self.bgX += scroll_values[0]
+        if self.bgY >= 600 or self.bgY <= -600: self.bgY=0
+        if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
 
-            if self.curFrame >= len(self.dir): self.curFrame = 0 #resetting frame
+        #RESETTING THE FRAME
+        if self.curFrame>=len(self.dir):self.curFrame=0
+
 
 
     # Duplicating images around current background to make the background look like it is repeating
@@ -886,6 +891,9 @@ class Level:
 
         self.world_ended=False
 
+        print("NEW WORLD ||",str(self.level),str(self.level_in_world))
+
+
     def update(self):
 
         # try: #this is a try statement because there will be no form to check later
@@ -893,7 +901,7 @@ class Level:
         self.form.update()  # updates the formation
 
         if self.form.state == "complete":
-
+            
             """This is the reset code. It deletes self.form, raises the level by 1, and then re-makes self.form"""
             self.form.destroy()
 
@@ -904,6 +912,9 @@ class Level:
             self.form.__init__(player=self.player,
                 level=self.level,
                 file=self.world_file)
+                
+            print(str(self.level),str(self.level_in_world))
+
 
 
         # except AttributeError: pass
@@ -1270,7 +1281,6 @@ def game_over(level_class : Level = None, score : int = 0):
     timer = 0
 
     while run:
-        """Updating the time, FPS CAP"""
         clock.tick(fps)
 
         if state == "slowdown":
@@ -1375,20 +1385,77 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
     #startup info
     FPS = 60
     run = True
-    
-    """slight pseudocode
-    heavily speeds up the bg
-        when the bg hits a specific speed, do the level class's "advance world" feature
-        then, slow the bg back down to the speed intended"""
 
+    """BG SPEED STARTUP
+    this will make the speeds speed up and slow down depending on things
+    during the speedup, it applies the little speed effect 1000 times
+    during the slowdown, it slows it down by 0.95 until it hits the desired speed of the next bg"""
+    state = "speedup"
+    scroll_values = [level_class.bg.config['scrollHoriz'],level_class.bg.config['scrollVert']]
+    speedups_applied = 0
+    """default scroll value"""
+    if scroll_values[0] == 0 and scroll_values[1] == 0:
+        scroll_values = [1,0]
+    
+    level_class.form.state = "dead" #fuly stops the playstate
+    level_class.form.destroy() #kills everything in playstate
 
     while run:
         clock.tick(FPS)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                exit()
             if event.type == pygame.KEYDOWN:
-                pass
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+            player.controls(event)
+
+
+        """SPEEDING UP THE BACKGROUND"""
+        if state == 'speedup' and speedups_applied < 250:
+            speedups_applied+=1 
+            """applying background change"""
+            scroll_values = [scroll_values[0]*1.025,scroll_values[1]*1.025] if scroll_values[0] < 100 and scroll_values[1] < 100 else scroll_values
+        #FINISHING SPEEDUP
+        elif state == 'speedup' and speedups_applied >= 250:
+            state = 'slowdown'
+            level_class.advance_world()
+            level_class.refresh_world_data()
+        # SLOWDOWN
+        elif state == 'slowdown' and (
+            abs(scroll_values[0] - level_class.bg.config["scrollHoriz"]) > 1 or abs(scroll_values[1] - level_class.bg.config["scrollVert"]) > 1):
+
+            scroll_values = [
+                scroll_values[0]*0.95,
+                scroll_values[1]*0.95
+            ]
+        #RECENTERING THE BACKGROUND
+        elif state == "slowdown" and ( abs(level_class.bg.bgX) > 10 or abs(level_class.bg.bgY) > 10 ):
+            
+            #HORIZONTAL MOVEMENT - TURNARY OPERATOR
+            if level_class.bg.bgX < -10:
+                level_class.bg.bgX += 5
+            elif level_class.bg.bgX > 10:
+                level_class.bg.bgX -= 5
+            if level_class.bg.bgY < -10 or level_class.bg.bgY > 10:
+                level_class.bg.bgY += 5
+
+        else: 
+            level_class.bg.bgX = level_class.bg.bgY = 0
+            # print(level_class.bg.bgX)
+            # print(level_class.bg.bgY)
+            # print("COMPLETE")
+            run = False
+
+        
+        """ALL UPDATES"""
+        universal_group.update()
+        level_class.bg.update(scroll_values = scroll_values)
+        level_class.bg.display_bg()
+        universal_group.draw(window)
+        pygame.display.update()
 
 
 
@@ -1463,6 +1530,8 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
     switch_frames=0
 
     while run:
+        
+        
 
         #DEBUG REMOVE
         switch_frames+=1
@@ -1488,6 +1557,10 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
             exit_state()
             return "title"
 
+        
+        #finishing the level
+        if level_class.level_in_world > level_class.world_file.level_length:
+            level_complete(level_class,player)
 
 
         # inputs
@@ -1532,6 +1605,8 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
                 if event.key==pygame.K_2:
                     level_class.advance_world()
                     level_class.refresh_world_data()
+                if event.key == pygame.K_3:
+                    level_complete(level_class,player)
 
 
 
