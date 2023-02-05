@@ -9,7 +9,7 @@ class data:
             "uitype":'default',
             "bg":'Space'
             }
-        self.level_length=15 #TEMPORARY, NORMALLY 10
+        self.level_length=10 #TEMPORARY, NORMALLY 10
 
         #SIZE values
         self.char_distance_x=40

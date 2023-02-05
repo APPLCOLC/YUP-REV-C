@@ -25,7 +25,7 @@ class data:
         self.worldInfo={
             "songname":'cave.mp3',
             "uitype":'default',
-            "bg":'nightofnights'
+            "bg":'Cave'
             }
         self.level_length=50 #TEMPORARY, NORMALLY 10
 

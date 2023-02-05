@@ -11,13 +11,24 @@ Most of the information you will need is in the code files itself as comments.
 
 TO DO LIST
 ----------
-**COMPLETE BY 1/28/23**
--Transitions from stage to stage, and bonuses
+-fix settings being loaded all the time
 
+-fix song preloading, get rid of it
+
+-preload preset font surfaces
+--0-9 (dun)
+--world names, as a list containing all the pieces of text leading to the image
+--bonus names 
+--ui elements ( "LEVEL COMPLETE"  "SCORE:" "WOW!" "OUCH!")
+--settings stuff, as to preload it (dun)
+
+
+**COMPLETE BY 1/28/23**
+-Transitions from stage to stage (2/4/23)
 **COMPLETE BY 1/27/23**
 -new SPIKE entrance pattern
 
--Game over screen that tells you to screenshot your score (1/31/22)
+-Game over screen that tells you to screenshot your score (1/31/23)
 *PSEUDOCODE - FUNCTION NAME IS game_over()*
 If the player is detected dead, play a little explosion over the player for the meme.
 Just like pause, playstate freezes, and starts "game over state"

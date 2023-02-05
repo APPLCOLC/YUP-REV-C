@@ -25,6 +25,9 @@ clock = pygame.time.Clock()
 # input("AFTER INITIALIZING PYGAME")
 
 """LOADING#################################################################"""
+"""SETTINGS"""
+global settings #unneeded, test
+with open("assets/settings.txt", "r") as data: settings = eval(data.read())
 
 """UI IMAGES---"""
 class UiImages:
@@ -200,6 +203,7 @@ for directory in os.listdir("./assets/images/bg/"):
         break #debug remove - makes there only one image
 
 # input("LOADED BACKGROUNDS")
+# print(loaded_backgrounds.keys())
 
 """LEVELS---"""
 loaded_levels = {}
@@ -269,16 +273,12 @@ class Sounds:
         pygame.mixer.Channel(0).stop()
 
     def play_nonmain_song(self,song):
-        # return
-        #This is specifically because if you replace the music file being played, in a menu for instance, it will not remember any song played before.
-        #If you pause the game, it replaces the gameplay music with the pause music, and forges all about the gameplay music.
-        with open('./assets/settings.txt','r') as data:
-            vol=eval(data.read())['OST VOL'][0]
-        self.ost[song].set_volume(vol)
+        self.ost[song].set_volume(settings["OST VOL"][0])
         pygame.mixer.Channel(1).play(self.ost[song],loops=-1)
-        return self.ost[song]
     #songs are easily stopped on their own and do not need a stop function
 
+    def stop_nonmain_song(self):
+        pygame.mixer.Channel(1).stop()
 
     def adjust_sounds(self, volume):
         for sound in self.sounds.values():
@@ -287,24 +287,20 @@ class Sounds:
         # death.set_volume(death.get_volume() / 2)
 
 
-    @staticmethod
-    def adjust_ost(volume=None):
-
-        if volume is not None:
-            pygame.mixer.music.set_volume(volume)
-
-        else:
-            with open('./assets/settings.txt','r') as data:volume=eval(data.read())['OST VOL'][0]
-            pygame.mixer.music.set_volume(volume)
+    def adjust_ost(self,volume=None):
+        for sound in self.sounds.values():
+            sound.set_volume(volume)
+        # if volume is not None:
+        #     pygame.mixer.music.set_volume(volume)
 
 
     def apply_offsets(self):
-        pass
         # for k,v in self.offsetSounds.items():
         #
         #     volume=self.soundList[self.soundList.index(k)].get_volume()*v
         #
         #     self.soundList[self.soundList.index(k)].set_volume(volume)
+        return
 
 sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this is what everything refers to
 
@@ -313,7 +309,7 @@ for sound in os.listdir("./assets/sounds/"):
 
 # input("LOADED SOUND EFFECTS")
 
-sounds.ost["pause.mp3"] = pygame.mixer.Sound("./assets/ost/pause.mp3")
+# sounds.ost["meowchill.mp3"] = pygame.mixer.Sound("./assets/ost/meowchill.mp3")
 for song in os.listdir("./assets/ost/"):
     if ".mp3" not in song:
         continue
@@ -323,10 +319,42 @@ for song in os.listdir("./assets/ost/"):
 
 # print(sounds.container)
 
+"""FONTS---"""
+loaded_text = {}
+#0-9
+for _ in range(10):
+    loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render(str(_),True,"white","black") )
+#world names
+with open("./levels/worldOrder.txt") as world_order:
+    world_order = eval(world_order.read())
+for _ in world_order:
+    loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_),True,"white","black" )) 
+#ouch, wow, bonus, score, level complete
+ui_names = ["WOW!","OUCH!","BONUS!","YOU SCORED:","SCORE:","COMBO!","NO MISS!", "WARPING TO", "YOU DID GREAT!", "YOU SUCK!"]
+for _ in ui_names:
+    loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_),True,"white","black" )) 
+#settings text, since it's always designed on startu
+for _ in settings.keys(): 
+    loaded_text[_] = pygame.transform.scale(
+        pygame.font.Font(
+            "./assets/font/Setfont-Regular.ttf", 50
+            ).render(str(_), True, "white"), 
+        (75, 40)
+        )
+
+# for key,value in loaded_text.items():
+#     print(str(key),str(type(value)))
+    
+
+
+# time.sleep(1)
+
+
+#settings, just to get it over with
 
 """FINISHING---"""
 
-del x,photo, prefixList, curFrame,directory, temp, the_code, i
+del x,photo, prefixList, curFrame,directory, temp, the_code, i,world_order
 
 
 
@@ -335,19 +363,15 @@ del x,photo, prefixList, curFrame,directory, temp, the_code, i
 """SHARED ASSETS##############################################################"""
 
 """APPLYING SETTINGS--------------------"""
-def read_apply_settings(settings_dict=None, nonmain_song=None):
+def apply_settings():
 
-    if settings_dict is None:
-        with open("assets/settings.txt", "r") as data:
-            # print("settings not present | settings file read")
-            settings_dict = eval(data.read())
-
-    fullscreen = settings_dict["FULLSCREEN"][0]
+    fullscreen = settings["FULLSCREEN"][0]
 
     # audio adjust
-    sounds.adjust_sounds(settings_dict['SOUND VOL'][0])
-    sounds.adjust_ost(settings_dict['OST VOL'][0])
-    if nonmain_song is not None: nonmain_song.set_volume(settings_dict['OST VOL'][0])
+    sounds.adjust_sounds(settings['SOUND VOL'][0])
+    sounds.adjust_ost(settings['OST VOL'][0])
+    pygame.mixer.Channel(0).set_volume(settings['OST VOL'][0])
+    pygame.mixer.Channel(1).set_volume(settings['OST VOL'][0])
 
     # screen adjust
     if fullscreen:
@@ -355,9 +379,8 @@ def read_apply_settings(settings_dict=None, nonmain_song=None):
     else:
         pygame.display.set_mode((450, 600), pygame.SCALED)
 
-    return settings_dict
 
-settings=read_apply_settings()
+
 
 
 """DEBUG TEXT--------------------"""
@@ -891,7 +914,7 @@ class Level:
 
         self.world_ended=False
 
-        print("NEW WORLD ||",str(self.level),str(self.level_in_world))
+        # print("NEW WORLD ||",str(self.level),str(self.level_in_world))
 
 
     def update(self):
@@ -913,17 +936,12 @@ class Level:
                 level=self.level,
                 file=self.world_file)
                 
-            print(str(self.level),str(self.level_in_world))
+            # print(str(self.level),str(self.level_in_world))
 
-
-
-        # except AttributeError: pass
 
     def advance_world(self):
         self.world_num+=1
         self.world_num_looped = self.world_num - ( len(self.worldOrder) * ((self.world_num-1)//len(self.worldOrder)) )
-
-        # print(str(self.world_num),"|",str(self.world_num_looped))
 
 
 
@@ -943,8 +961,8 @@ def title():
 
     index = 1
 
-    #GETS DA SOUNDS TO PLAY
-    sounds.play_song('title.mp3')
+    #playing sounds only if no other sounds are playing
+    if not pygame.mixer.Channel(0).get_busy(): sounds.play_song('title.mp3')
 
     #REDRAW_WINDOW IS ONLY FOR GRAPHICS. NO SOUND EFFECTS OR SPRITES.
     #redraw_window will show and hide sprites depending on what menu you're in and what index you have selected
@@ -1009,7 +1027,7 @@ def title():
                     if index == 1: sounds.stop_song(); return "start"
 
                     #If you picked options, it will open the options menu
-                    elif index == 2: sounds.stop_song(); return "options"
+                    elif index == 2: return "options"
 
                     # If you pick quit, or something else by some chance, the game will quit.
                     else:sounds.sounds["select.mp3"].play();time.sleep(0.5);run = False;exit()
@@ -1033,31 +1051,20 @@ def title():
 
 """OPTIONS ASSETS--------------------"""
 def options():
-    def render_text(text):
-        font = pygame.font.Font("./assets/font/Setfont-Regular.ttf", 50)
-        surface = pygame.transform.scale(font.render(str(text), True, "white"), (75, 40))
-
-        return surface
-
-    sounds.play_nonmain_song("pause.mp3")
-
-    # Reads a dictionary, with the index name and the values associated with it
-    settings_keys_images = {}
-
-    # Compiling a dictionary of rendered text to be displayed for the items
-    for key in settings.keys(): settings_keys_images[key] = render_text(str(key))
 
     # UI settings
     run = True
     index = 0
+
+    #QUICK NOTE -- options has no music, as it plays whatever was playing previously
 
     def redraw_window():
         # filling the bg and showing the title
         window.blit(ui.option_bg, (0, 0))
         # displaying the setting names
         y = 0
-        for value in settings_keys_images.values():
-            window.blit(value, (50, (y * 50) + 200))
+        for key in settings.keys():
+            window.blit(loaded_text[key], (50, (y * 50) + 200))
             y += 1
         # displaying the setting values
         y = 0
@@ -1094,10 +1101,9 @@ def options():
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_k:
+                if event.key == pygame.K_k or event.key == pygame.K_ESCAPE:
                     sounds.sounds["back.mp3"].play()
                     # writing the settings
-                    sounds.ost["pause.mp3"].stop()
                     return "title"
 
                 if event.key == pygame.K_s and index < (len(settings) - 1):
@@ -1150,9 +1156,7 @@ def options():
                         sounds.sounds["denied.mp3"].play()
 
                 if event.key == pygame.K_p:
-                    read_apply_settings(settings, sounds.ost["pause.mp3"])
-                    with open("./assets/settings.txt", "w+") as data:
-                        data.write(str(settings))
+                    apply_settings()
                 #only redraws the window when a setting is changed. No FPS needed.
                 redraw_window()
 
@@ -1165,7 +1169,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
     got it?
     """
 
-    sounds.play_nonmain_song('pause.mp3')
+    sounds.play_nonmain_song('meowchill.mp3')
 
 
     #sets the values
@@ -1221,17 +1225,15 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
                 if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                     sounds.sounds["select2.mp3"].play()
                     if index == 1:
-                        sounds.ost["pause.mp3"].stop()
+                        sounds.stop_nonmain_song()
                         run = False
                     if index == 2:
-                        sounds.ost["pause.mp3"].stop()
                         options()
-                        sounds.play_nonmain_song('pause.mp3')
                     if index == 3:
-                        sounds.ost["pause.mp3"].stop()
+                        sounds.stop_nonmain_song()
                         return "title"
 
-    sounds.ost["pause.mp3"].stop()
+    sounds.stop_nonmain_song()
     return time_passed
 
 
@@ -1348,7 +1350,7 @@ def game_over(level_class : Level = None, score : int = 0):
                     state_results = 3
 
 
-            window.blit(bg_image_1,(center, 0))
+            window.blit(bg_image_1,(0, 0))
             window.blit(ui.game_over_sign,(center, 0.05*((game_over_image_x-200)**2) ))
 
 
@@ -1386,6 +1388,12 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
     FPS = 60
     run = True
 
+    """SOUND EDITING
+    this is specifically stopping channel 1 as this should not play outside of main"""
+    pygame.mixer.Channel(0).pause()
+    # pygame.mixer.Channel(1).pause()
+    sounds.play_nonmain_song("Detention.mp3")
+
     """BG SPEED STARTUP
     this will make the speeds speed up and slow down depending on things
     during the speedup, it applies the little speed effect 1000 times
@@ -1407,9 +1415,6 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
             if event.type == pygame.QUIT:
                 run = False
                 exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    run = False
             player.controls(event)
 
 
@@ -1434,7 +1439,7 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
         #RECENTERING THE BACKGROUND
         elif state == "slowdown" and ( abs(level_class.bg.bgX) > 10 or abs(level_class.bg.bgY) > 10 ):
             
-            #HORIZONTAL MOVEMENT - TURNARY OPERATOR
+            #RECENTERING BG
             if level_class.bg.bgX < -10:
                 level_class.bg.bgX += 5
             elif level_class.bg.bgX > 10:
@@ -1456,16 +1461,14 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
         level_class.bg.display_bg()
         universal_group.draw(window)
         pygame.display.update()
-
+    
+    """ending the music"""
+    pygame.mixer.Channel(0).unpause()
+    sounds.stop_nonmain_song()
 
 
 """GAMEPLAY ASSETS--------------------"""
-def play(bullet_shared=loaded_bullets["shared"],settings=None):
-
-    # DEALING WITH SETTINGS:
-    if settings is None:
-        settings = read_apply_settings()
-
+def play(bullet_shared=loaded_bullets["shared"]):
 
     # CREATING THE PLAYER
     player = loaded_characters["player"].Player(
@@ -1610,22 +1613,13 @@ def play(bullet_shared=loaded_bullets["shared"],settings=None):
 
 
 
-#DEBUG COMMAND EXECUTION
-# exit_commands=["exit","quit","leave","abort","depart"]
-# while True:
-#     cmd=input("COMMAND:")
-#     if cmd.lower() in exit_commands:break
-#     exec(cmd)
-# exit()
-
-
 
 
 
 "MAIN LOOP###############################################################"
 next_state = "title"
-
-while True:
+run = True
+while run:
     #ADJUSTS THE VOLUME EVERY SINGLE TIME A STATE CHANGES
     short_load()
 
@@ -1647,11 +1641,10 @@ while True:
         else:exit()
 
     elif next_state is None:
-        short_load()
-        exit()
+        run = False
 
     else:
-        print("invalid state entry")
-        exit()
+        run = False
 
-
+with open("./assets/settings.txt", "w+") as data:
+    data.write(str(settings))
