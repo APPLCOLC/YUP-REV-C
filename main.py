@@ -15,10 +15,13 @@ pygame.font.init()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(16)
 
-universal_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
-bullet_group = pygame.sprite.Group()
-enemy_group = pygame.sprite.Group()
+groups = {
+    "universal":pygame.sprite.Group(),
+    "player":pygame.sprite.GroupSingle(),
+    "bullet":pygame.sprite.Group(),
+    "enemy":pygame.sprite.Group(),
+    "priority":pygame.sprite.Group(), #the priority group ; gets shown over the others graphically 
+}
 
 clock = pygame.time.Clock()
 
@@ -328,9 +331,9 @@ for _ in range(10):
 with open("./levels/worldOrder.txt") as world_order:
     world_order = eval(world_order.read())
 for _ in world_order:
-    loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_),True,"white","black" )) 
+    loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_.upper()),True,"white","black" )) 
 #ouch, wow, bonus, score, level complete
-ui_names = ["WOW!","OUCH!","BONUS!","YOU SCORED:","SCORE:","COMBO!","NO MISS!", "WARPING TO", "YOU DID GREAT!", "YOU SUCK!"]
+ui_names = ["WOW!","OUCH!","BONUS!","YOU SCORED:","SCORE:","COMBO!","NO MISS!", "WARPING TO", "YOU DID GREAT!", "YOU SUCK!","YOU'RE WINNER!"]
 for _ in ui_names:
     loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_),True,"white","black" )) 
 #settings text, since it's always designed on startu
@@ -342,19 +345,101 @@ for _ in settings.keys():
         (75, 40)
         )
 
-# for key,value in loaded_text.items():
-#     print(str(key),str(type(value)))
+#VISUAL EFFECT TEXT
+class Text(pygame.sprite.Sprite):
+    possible_patterns = [ "static", "linear", "sine", "squared", "static sine" ]
+    screen_rect = pygame.Rect(0,0,450,600)
+    def __init__( self,
+        text :str = "WOW!",
+        pattern :str = "static", #pattern, random.choice( [ "static", "linear", "sine", "squared" ] )
+        duration:str = -1, #how many frames the item should last for. -1 equals infinity 
+        size:int = None, #resizable ; if None, no resize
+        font:str = "./assets/font/Terminus.ttf", #the font ; could also be SetFont
+        fg:str = "white", #foreground color
+        bg:str = "black", #background color
+        pos:tuple = (0,0), #where item is placed, or the vertex of the function
+        vertex:tuple = (0,0), #used for sine and squared
+        modifier:int = 1, #slope, sine vertical stretch, etc
+        modifier2:int = 1, #sine horizontal stretch, idk what else
+        speed:int = 1, #self explanatory - vertical movement
+        ):
+
+        pygame.sprite.Sprite.__init__(self)
+
+        #FIXING PATTERN
+        
+        self.pattern = "static" if pattern not in Text.possible_patterns or pattern == "static" else pattern
+
+        #IMAGE REGISTRATION
+        if text in loaded_text.keys():
+            #if the image is loaded
+            self.image = loaded_text[text]
+        else:
+            #if the image is not loaded
+            print("TEXT NOT PRESENT, ADDING...")
+            loaded_text[text] = pygame.font.Font(font,20).render(str(text),True,fg,bg)
+            self.image = loaded_text[text]
+
+        #resizing image
+        if size is not None:
+            self.image = pygame.transform.scale(self.image,((size//2)*len(text),size))
+        self.rect = self.image.get_rect()
+        
+        #positioning image
+        self.rect.center = pos
+
+        #turning around if wrong way
+        if (pos[0] < 0 and speed < 0) or (pos[0] > 450 and speed > 0):
+            speed *= -1
     
 
+        #making class items
+        self.pos,self.vertex = pos,vertex
+        self.modifier,self.modifier2 = modifier,modifier2
+        self.speed = speed
+        
+        #counting up
+        self.counter = 0 if duration >= 0 else -2
+        self.duration = duration
+            
+    def update(self):
+        self.counter += 1
+        if (self.counter >= 60 and not self.on_screen()) or ( (self.duration is not -1) and (self.counter >= self.duration) ):
+            # print("ded")
+            self.kill()
+        
+        #no movement
+        if self.pattern == "static":
+            return
+        #sine in-place
+        elif self.pattern == "static sine":
+            # print(self.counter)
+            self.rect.center = (
+                self.rect.center[0],
+                #based off counter since this one doesn't move the x position
+                (self.modifier * math.sin((self.modifier2*(self.counter)) + self.vertex[0])) + self.vertex[1]
+            )
+        #sine moving
+        elif self.pattern == "sine":
+            self.rect.center = (
+                self.rect.center[0]+self.speed,
+                #based off x position since this one moves the x position
+                (self.modifier * math.sin((self.modifier2*(self.rect.center[0])) + self.vertex[0])) + self.vertex[1]
+            )
+        elif self.pattern == "slope":
+            pass
+        else: self.kill()
 
-# time.sleep(1)
-
-
-#settings, just to get it over with
+    def on_screen(self):
+        return self.rect.colliderect(Text.screen_rect)
+        
+        
+        
 
 """FINISHING---"""
 
 del x,photo, prefixList, curFrame,directory, temp, the_code, i,world_order
+# print(dir())
 
 
 
@@ -381,37 +466,6 @@ def apply_settings():
 
 
 
-
-
-"""DEBUG TEXT--------------------"""
-def debug_displays(sprite_class_dict, variables, time_passed, fps, level, win=None):
-
-    #adding items to the print list
-    base_text= ["-DEBUG-", "FPS:" + str(round(fps, 1)), "TIME:" + str(round(time_passed, 1)), "LEVEL:" + str(level)]
-
-    for key, value in variables.items():
-        base_text.append(str(key) + "-var:" + str(len(value)))
-
-    base_text.append("ALL SPRITES:" + str(len(universal_group)))
-
-    for key,value in sprite_class_dict.items():
-        base_text.append(""+str(key)+":"+str(len(value)))
-
-
-    #displaying the print list
-    if win is None:
-        print(base_text)
-
-    else:
-        for _ in range(len(base_text)):
-            font = pygame.font.Font("./assets/font/Setfont-Regular.ttf", 20)
-            surface = font.render(str(base_text[i]), True, "white")
-            window.blit(surface, (0, ((i * 20) + 30)))
-            del surface,font
-
-    del base_text
-
-
 """LOADING--------------------"""
 def long_load():
     window.blit(ui.load_bg, (0, 0))
@@ -424,7 +478,7 @@ def short_load():
 
 
 """TEXT DISPLAY--------------------"""
-def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20, snap_direction = "r"):
+def draw_text(score_value, coord, snap=True, shadow=True, color=(255, 255, 255), shadow_color=(0, 0, 0), size=20, snap_direction = "r"):
 
     score_font = pygame.font.Font("./assets/font/terminus.ttf",size)
 
@@ -441,9 +495,19 @@ def display_score(score_value, coord, snap=True, shadow=True, color=(255, 255, 2
 
     del score_font,score_rect,score_surface
 
-
-# input("LOADED IMPORTANT FUNCTIONS")
-
+#specifically displaying the score
+def draw_score(score, snap="right",x=0,y=0):
+    score=str(score)
+    if snap == 'right':
+        for i in range(len(score)):
+            window.blit(
+                loaded_text[
+                    int(score[i])
+                    ], 
+                    (((len(score)-(i+1)) * -11+(x-11)), y) 
+                )
+    
+    del score,snap,i
 
 
 
@@ -654,7 +718,7 @@ class Formation:
                 #adds a character to the formation
                 self.spawned_formation[self.spawn_list_indexes[0][0]].append(
                     loaded_characters[self.spawn_list[self.spawn_list_indexes[0][0]][self.spawn_list_indexes[0][1]]].Char(
-                        args={ "groups": {"universal":universal_group,"bullet":bullet_group,"enemy":enemy_group},
+                        args={ "groups": groups,
                                "player": self.player,
                                "formation_position": self.pos,
                                "offset":((self.spawn_list_indexes[0][1] * self.file.char_distance_x),(self.spawn_list_indexes[0][0] * self.file.char_distance_y)),
@@ -682,8 +746,8 @@ class Formation:
                 return
 
             #adding to group
-            universal_group.add(self.spawned_formation[self.spawn_list_indexes[0][0]][self.columns])
-            enemy_group.add(self.spawned_formation[self.spawn_list_indexes[0][0]][self.columns])
+            groups["universal"].add(self.spawned_formation[self.spawn_list_indexes[0][0]][self.columns])
+            groups["enemy"].add(self.spawned_formation[self.spawn_list_indexes[0][0]][self.columns])
 
             #instead of using the y value for some things, we use *columns*, because some blank indexes get left out
             self.columns+=1
@@ -696,7 +760,7 @@ class Formation:
 
         if self.current_frame >= 6:
             self.current_frame = 0
-            universal_group.add(shared.dieBoom(self.spawned_formation[0][0].rect.center, (50, 50)))
+            groups["universal"].add(shared.dieBoom(self.spawned_formation[0][0].rect.center, (50, 50)))
             self.spawned_formation[0][0].state = "dead"
             self.spawned_formation[0][0].kill()
 
@@ -872,7 +936,7 @@ class Level:
         self.world_file=None
 
         #refresh-world-data default values
-        self.worldName=""
+        self.world_name=""
         self.bg = None
         self.form = None
 
@@ -891,9 +955,9 @@ class Level:
 
 
         #looks at the list of worlds and figures out the world name based off the index of world_num
-        self.worldName = self.worldOrder[self.world_num_looped-1]
+        self.world_name = self.worldOrder[self.world_num_looped-1]
 
-        self.world_file = self.worldData[self.worldName].data(level=self.level)
+        self.world_file = self.worldData[self.world_name].data(level=self.level)
 
 
         #loading the music
@@ -942,6 +1006,8 @@ class Level:
     def advance_world(self):
         self.world_num+=1
         self.world_num_looped = self.world_num - ( len(self.worldOrder) * ((self.world_num-1)//len(self.worldOrder)) )
+
+
 
 
 
@@ -1033,7 +1099,7 @@ def title():
                     else:sounds.sounds["select.mp3"].play();time.sleep(0.5);run = False;exit()
 
 
-                #Escape press for quitting game
+                #Escape press for quitting games
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_k:
                     sounds.sounds["back.mp3"].play()
                     exit()
@@ -1304,10 +1370,8 @@ def game_over(level_class : Level = None, score : int = 0):
                 level_class.bg.destroy()
                 level_class.form.destroy()
                 del level_class.form, level_class.bg
-                enemy_group.empty()
-                player_group.empty()
-                bullet_group.empty()
-                universal_group.empty()
+                for _ in groups.values():
+                    _.empty()
                 state = "results"
 
         
@@ -1371,19 +1435,20 @@ def game_over(level_class : Level = None, score : int = 0):
         """DRAWING ITEMS
         the universal group draws all the sprites at the end
         if it did it before, the background would go over it"""
-        universal_group.update()
-        universal_group.draw(window)
+        groups["universal"].update()
+        groups["universal"].draw(window)
         """this draws the score and the quote"""
         if state_results == 1 or state_results == 2:
-            display_score(score_counter, coord = (125,150), snap_direction='l', size = 35)
+            draw_text(score_counter, coord = (125,150), snap_direction='l', size = 35)
         if state_results == 2:
-            display_score(built_quote, coord = (125,200), snap_direction = 'l', size = 25)
+            draw_text(built_quote, coord = (125,200), snap_direction = 'l', size = 25)
         pygame.display.update()
 
 
 
 """LEVEL COMPLETE"""
 def level_complete(level_class : Level = None, player : loaded_characters["player"].Player = None):
+
     #startup info
     FPS = 60
     run = True
@@ -1404,6 +1469,18 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
     """default scroll value"""
     if scroll_values[0] == 0 and scroll_values[1] == 0:
         scroll_values = [1,0]
+
+
+    """TEXT VISUALS
+    During this transition, there is a cute little thing with text scrolling by for just a tinge of nice visual effect
+    This will dictate the list of random text you get, or specifically if it says "YOU DID GREAT" or "YOU SUCK!" """
+    inspirational_list = ["WOW!","YOU'RE WINNER!"]
+    if player.health > 1: inspirational_list.append("YOU DID GREAT!")
+    else: inspirational_list.append("YOU SUCK!")
+    """The world name has an error where, if you look past the range of the worlds, an error is raised
+    this will prevent that."""
+    next_world_number = 0 if level_class.world_num_looped > (len(level_class.worldOrder)-1) else level_class.world_num_looped
+   
     
     level_class.form.state = "dead" #fuly stops the playstate
     level_class.form.destroy() #kills everything in playstate
@@ -1415,16 +1492,59 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
             if event.type == pygame.QUIT:
                 run = False
                 exit()
+            if event.type == pygame.KEYDOWN:
+                # print(speedups_applied)
+                pass
             player.controls(event)
 
 
         """SPEEDING UP THE BACKGROUND"""
-        if state == 'speedup' and speedups_applied < 250:
+        if state == 'speedup' and speedups_applied < 256:
             speedups_applied+=1 
             """applying background change"""
             scroll_values = [scroll_values[0]*1.025,scroll_values[1]*1.025] if scroll_values[0] < 100 and scroll_values[1] < 100 else scroll_values
+        
+            #TEXT EFFECT
+            if speedups_applied % 5 == 0:
+                size,speed = random.randint(20,30),random.randint(5,7)
+                text = Text(
+                    pos=(random.choice([-150,600]),0), 
+                    vertex=(0,random.randint(0,600) ),
+                    modifier = random.uniform(0.1,20), 
+                    modifier2 = random.uniform(0.005,0.05),
+                    pattern="sine", 
+                    speed=random.choice([-1*speed,speed]), 
+                    text=random.choice(inspirational_list), 
+                    size = size)
+                groups["universal"].add(text)
+                # print(len(universal_group))
+            
+            #"WORLD COMPLETE! text"
+            if speedups_applied == 1: 
+                text = Text(pos=(225,0), vertex=( 0 , 50 ),modifier = 3, modifier2 = 0.75, size = 40,duration = 384,
+                    pattern="static sine", speed=1, text="STAGE COMPLETE!", )
+                groups["universal"].add(text);groups["priority"].add(text)
+            #2
+            if speedups_applied == 64: 
+                text = Text(pos=(225,0), vertex=( 0 , 100 ),modifier = 3, modifier2 = 1,size = 40,duration = (384-64),
+                    pattern="static sine", speed=1, text="WARPING TO", )
+                groups["universal"].add(text);groups["priority"].add(text)
+            #3
+            if speedups_applied == 128: 
+                text = Text(pos=(225,0), vertex=( 0 , 150 ),modifier = 3, modifier2 = 2, size = 40,duration = (384-128),
+                    pattern="static sine", speed=1, text=str(level_class.worldOrder[next_world_number]))
+                groups["universal"].add(text);groups["priority"].add(text)
+            #4
+            if speedups_applied == 224: 
+                text = Text(pos=(225,0), vertex=( 0 , 200 ),modifier = 3, modifier2 = 2, size = 40,duration = (384-224),
+                    pattern="static sine", speed=1, text="BONUSES:")
+                groups["universal"].add(text);groups["priority"].add(text)
+
+
+
+
         #FINISHING SPEEDUP
-        elif state == 'speedup' and speedups_applied >= 250:
+        elif state == 'speedup' and speedups_applied >= 256:
             state = 'slowdown'
             level_class.advance_world()
             level_class.refresh_world_data()
@@ -1456,10 +1576,11 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
 
         
         """ALL UPDATES"""
-        universal_group.update()
+        groups["universal"].update()
         level_class.bg.update(scroll_values = scroll_values)
         level_class.bg.display_bg()
-        universal_group.draw(window)
+        groups["universal"].draw(window)
+        groups["priority"].draw(window) #priority graphical
         pygame.display.update()
     
     """ending the music"""
@@ -1474,14 +1595,10 @@ def play(bullet_shared=loaded_bullets["shared"]):
     player = loaded_characters["player"].Player(
         sounds=sounds,
         loaded_bullets=loaded_bullets,
-        groups = {
-            "universal":universal_group,
-            "bullet":bullet_group,
-            "enemy":enemy_group
-            }
+        groups = groups
     )
-    universal_group.add(player)
-    player_group.add(player)
+    groups["universal"].add(player)
+    groups["player"].add(player)
 
 
     world_num=1
@@ -1503,20 +1620,21 @@ def play(bullet_shared=loaded_bullets["shared"]):
     graphical=True #this is for debug purposes, where if you turn it off, the display turns off but the framerate rises heavily
 
 
-    def exit_state(state_list=(enemy_group, bullet_group, player_group, universal_group)):
-        for item in state_list:
-            item.empty()
+    def exit_state():
+        for _ in groups.values():
+            _.empty()
 
 
     def redraw_window():
 
         level_class.bg.display_bg()
-        universal_group.draw(window) 
+        groups["universal"].draw(window) 
 
         # UI
         # bullet_shared.display_bullet(window, (0, 0), player.current_weapon, loaded_bullets)
         player.display_health(window, 0)
-        display_score(player.score, (450, 0), window)
+        # draw_text(player.score, (450, 0), window)
+        draw_score(player.score,x=450)
 
 
         # FINISHING WITH AN UPDATE STATEMENT
@@ -1524,7 +1642,7 @@ def play(bullet_shared=loaded_bullets["shared"]):
 
 
     def update_sprites():
-        universal_group.update()
+        groups["universal"].update()
         level_class.bg.update()
 
 
@@ -1533,8 +1651,6 @@ def play(bullet_shared=loaded_bullets["shared"]):
     switch_frames=0
 
     while run:
-        
-        
 
         #DEBUG REMOVE
         switch_frames+=1
