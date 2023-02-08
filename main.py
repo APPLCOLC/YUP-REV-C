@@ -25,11 +25,16 @@ groups = {
 
 clock = pygame.time.Clock()
 
+continue_song = False #universal value for title screen, ignore 
 # input("AFTER INITIALIZING PYGAME")
+
+
+
+
+
 
 """LOADING#################################################################"""
 """SETTINGS"""
-global settings #unneeded, test
 with open("assets/settings.txt", "r") as data: settings = eval(data.read())
 
 """UI IMAGES---"""
@@ -205,8 +210,7 @@ for directory in os.listdir("./assets/images/bg/"):
             break
         break #debug remove - makes there only one image
 
-# input("LOADED BACKGROUNDS")
-# print(loaded_backgrounds.keys())
+
 
 """LEVELS---"""
 loaded_levels = {}
@@ -248,6 +252,8 @@ for item in os.listdir("./bullets/"):
 
 # input("LOADED UI")
 
+
+
 """SOUNDS---"""
 
 class Sounds:
@@ -263,39 +269,24 @@ class Sounds:
 
     ###############FUNCTIONS###############-
 
-    def play_song(self,song_name):
-        # return
-        with open('./assets/settings.txt','r') as data:
-            vol=eval(data.read())['OST VOL'][0]
-        self.ost[str(song_name)].set_volume(vol)
-        pygame.mixer.Channel(0).play(self.ost[str(song_name)],loops=-1)
-
+    def play_song(self,song,time=0.0):
+        pygame.mixer.music.set_volume(settings["OST VOL"][0])
+        pygame.mixer.music.load("./assets/ost/"+song)
+        pygame.mixer.music.play(loops=-1)
+        pygame.mixer.music.set_pos(time)
 
     @staticmethod
     def stop_song():
-        pygame.mixer.Channel(0).stop()
+        pygame.mixer.music.stop()
 
-    def play_nonmain_song(self,song):
-        self.ost[song].set_volume(settings["OST VOL"][0])
-        pygame.mixer.Channel(1).play(self.ost[song],loops=-1)
-    #songs are easily stopped on their own and do not need a stop function
-
-    def stop_nonmain_song(self):
-        pygame.mixer.Channel(1).stop()
-
-    def adjust_sounds(self, volume):
+    def adjust_sounds(self):
         for sound in self.sounds.values():
-            sound.set_volume(volume)
+            sound.set_volume(settings["SOUND VOL"][0])
         self.apply_offsets()
         # death.set_volume(death.get_volume() / 2)
 
-
-    def adjust_ost(self,volume=None):
-        for sound in self.sounds.values():
-            sound.set_volume(volume)
-        # if volume is not None:
-        #     pygame.mixer.music.set_volume(volume)
-
+    def adjust_ost(self):
+        pygame.mixer.music.set_volume(settings["OST VOL"][0])
 
     def apply_offsets(self):
         # for k,v in self.offsetSounds.items():
@@ -310,17 +301,10 @@ sounds=Sounds();sounds.apply_offsets()#this creates an object of the class. this
 for sound in os.listdir("./assets/sounds/"):
     sounds.sounds[str(sound)] = pygame.mixer.Sound("./assets/sounds/" + str(sound))
 
-# input("LOADED SOUND EFFECTS")
-
-# sounds.ost["meowchill.mp3"] = pygame.mixer.Sound("./assets/ost/meowchill.mp3")
-for song in os.listdir("./assets/ost/"):
-    if ".mp3" not in song:
-        continue
-    else:
-        sounds.ost[str(song)] = pygame.mixer.Sound("./assets/ost/" + str(song))
 
 
-# print(sounds.container)
+
+
 
 """FONTS---"""
 loaded_text = {}
@@ -333,7 +317,7 @@ with open("./levels/worldOrder.txt") as world_order:
 for _ in world_order:
     loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_.upper()),True,"white","black" )) 
 #ouch, wow, bonus, score, level complete
-ui_names = ["WOW!","OUCH!","BONUS!","YOU SCORED:","SCORE:","COMBO!","NO MISS!", "WARPING TO", "YOU DID GREAT!", "YOU SUCK!","YOU'RE WINNER!"]
+ui_names = ["WOW!","OUCH!","BONUSES:","YOU SCORED:","SCORE:","COMBO!","NO MISS!", "WARPING TO", "YOU DID GREAT!", "YOU SUCK!","YOU'RE WINNER!", "STAGE COMPLETE!"]
 for _ in ui_names:
     loaded_text[_] = ( pygame.font.Font("./assets/font/Terminus.ttf",20).render( str(_),True,"white","black" )) 
 #settings text, since it's always designed on startu
@@ -434,7 +418,10 @@ class Text(pygame.sprite.Sprite):
         return self.rect.colliderect(Text.screen_rect)
         
         
-        
+
+
+
+
 
 """FINISHING---"""
 
@@ -453,8 +440,8 @@ def apply_settings():
     fullscreen = settings["FULLSCREEN"][0]
 
     # audio adjust
-    sounds.adjust_sounds(settings['SOUND VOL'][0])
-    sounds.adjust_ost(settings['OST VOL'][0])
+    sounds.adjust_sounds()
+    sounds.adjust_ost()
     pygame.mixer.Channel(0).set_volume(settings['OST VOL'][0])
     pygame.mixer.Channel(1).set_volume(settings['OST VOL'][0])
 
@@ -463,7 +450,7 @@ def apply_settings():
         pygame.display.set_mode((450, 600), pygame.FULLSCREEN | pygame.SCALED)
     else:
         pygame.display.set_mode((450, 600), pygame.SCALED)
-
+apply_settings()
 
 
 """LOADING--------------------"""
@@ -508,7 +495,6 @@ def draw_score(score, snap="right",x=0,y=0):
                 )
     
     del score,snap,i
-
 
 
 
@@ -1027,8 +1013,7 @@ def title():
 
     index = 1
 
-    #playing sounds only if no other sounds are playing
-    if not pygame.mixer.Channel(0).get_busy(): sounds.play_song('title.mp3')
+    if not continue_song: sounds.play_song('title.mp3')
 
     #REDRAW_WINDOW IS ONLY FOR GRAPHICS. NO SOUND EFFECTS OR SPRITES.
     #redraw_window will show and hide sprites depending on what menu you're in and what index you have selected
@@ -1235,7 +1220,7 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
     got it?
     """
 
-    sounds.play_nonmain_song('meowchill.mp3')
+    sounds.play_song('meowchill.mp3')
 
 
     #sets the values
@@ -1291,15 +1276,15 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
                 if event.key == pygame.K_j or event.key == pygame.K_SPACE:
                     sounds.sounds["select2.mp3"].play()
                     if index == 1:
-                        sounds.stop_nonmain_song()
+                        sounds.stop_song()
                         run = False
                     if index == 2:
                         options()
                     if index == 3:
-                        sounds.stop_nonmain_song()
+                        sounds.stop_song()
                         return "title"
 
-    sounds.stop_nonmain_song()
+    sounds.stop_song()
     return time_passed
 
 
@@ -1455,9 +1440,7 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
 
     """SOUND EDITING
     this is specifically stopping channel 1 as this should not play outside of main"""
-    pygame.mixer.Channel(0).pause()
-    # pygame.mixer.Channel(1).pause()
-    sounds.play_nonmain_song("Detention.mp3")
+    sounds.play_song("Detention.mp3")
 
     """BG SPEED STARTUP
     this will make the speeds speed up and slow down depending on things
@@ -1531,12 +1514,12 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
                 groups["universal"].add(text);groups["priority"].add(text)
             #3
             if speedups_applied == 128: 
-                text = Text(pos=(225,0), vertex=( 0 , 150 ),modifier = 3, modifier2 = 2, size = 40,duration = (384-128),
+                text = Text(pos=(225,0), vertex=( 0 , 150 ),modifier = 5, modifier2 = 2, size = 40,duration = (384-128),
                     pattern="static sine", speed=1, text=str(level_class.worldOrder[next_world_number]))
                 groups["universal"].add(text);groups["priority"].add(text)
             #4
             if speedups_applied == 224: 
-                text = Text(pos=(225,0), vertex=( 0 , 200 ),modifier = 3, modifier2 = 2, size = 40,duration = (384-224),
+                text = Text(pos=(225,0), vertex=( 0 , 200 ),modifier = 3, modifier2 = 0.75, size = 40,duration = (384-224),
                     pattern="static sine", speed=1, text="BONUSES:")
                 groups["universal"].add(text);groups["priority"].add(text)
 
@@ -1582,10 +1565,6 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
         groups["universal"].draw(window)
         groups["priority"].draw(window) #priority graphical
         pygame.display.update()
-    
-    """ending the music"""
-    pygame.mixer.Channel(0).unpause()
-    sounds.stop_nonmain_song()
 
 
 """GAMEPLAY ASSETS--------------------"""
@@ -1699,16 +1678,15 @@ def play(bullet_shared=loaded_bullets["shared"]):
                     # freezes everything and opens the pause menu
                     player.reset_movement()
 
-                    pygame.mixer.Channel(0).pause()
-
-                    time_paused =  pause(img=level_class.bg.dir[0])
+                    #fetching the time from the song being played, as the music will stop
+                    time_pos = pygame.mixer.music.get_pos()
+                    result =  pause(img=level_class.bg.dir[0])
+                    sounds.play_song(str(level_class.world_file.worldInfo['songname']),time=time_pos)
 
                     # If an error occurs, or any exit code is brought up, it spits you back at the title
-                    if type(time_paused) != float:
+                    if type(result) != float:
                         exit_state()
                         return "title"  # Sends the character into "title state", removing every single bit of progress made.
-
-                    pygame.mixer.Channel(0).unpause()
 
 
             # PLAYER CONTROLS
@@ -1748,10 +1726,12 @@ while run:
 
         elif next_state == "title":
             next_state = title()
+            continue_song = False #resetting title state song restart
             continue
 
         elif next_state == "options":
             next_state = options()
+            continue_song = True #tells title state not to restart song
             continue
 
         else:exit()

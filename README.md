@@ -11,15 +11,27 @@ Most of the information you will need is in the code files itself as comments.
 
 TO DO LIST
 ----------
--fix settings being loaded all the time
+-fix song preloading, get rid of it (2/7/22)
+--make the music loading pygame.mixer.Music.load()
+--if anything has to do with pausing a song and loading it back in, save the timeframe
 
--fix song preloading, get rid of it
+-RESTORE POWER UP IMAGES
 
--preload preset font surfaces
+-Preload game over text
+
+-MORE SOUNDS
+--character shooting
+--explosions
+--game over
+--enemy death
+
+-fix settings being loaded all the time (2/7/23)
+
+-preload preset font surfaces (2/7/23)
 --0-9 (dun)
---world names, as a list containing all the pieces of text leading to the image
---bonus names 
---ui elements ( "LEVEL COMPLETE"  "SCORE:" "WOW!" "OUCH!")
+--world names, as a list containing all the pieces of text leading to the image (dun)
+--bonus names (dun)
+--ui elements ( "LEVEL COMPLETE"  "SCORE:" "WOW!" "OUCH!") (dun)
 --settings stuff, as to preload it (dun)
 
 
