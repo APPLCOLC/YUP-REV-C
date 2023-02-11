@@ -140,7 +140,8 @@ class Player(pygame.sprite.Sprite):
                     coordinates = self. rect.center,
                     all_sprites = self.groups["universal"],
                     enemy_sprites = self.groups["enemy"],
-                    bullet_sprites = self.groups["bullet"]
+                    bullet_sprites = self.groups["bullet"],
+                    sounds = self.sounds,
                 )
 
         #checking key lifting to stop movement 
@@ -233,9 +234,13 @@ class Player(pygame.sprite.Sprite):
         #displaying health code
         for i in range(self.health):
             val = 2 if i > 2 else i
-            WIN.blit(Player.health[val],((i*25),location_y))
+            WIN.blit(Player.health[val],(
+                (i*25)-((i//10)*250),
+                ((i//10)*25) + location_y
+                ))
         if self.bullet != "default":
             WIN.blit(
                 pygame.transform.scale(self.loaded_bullets[self.bullet].Bullet.image,(25,25)).convert_alpha(),
-                (((i*25)+25),location_y)
+                (((i*25)+25),
+                location_y)
             )

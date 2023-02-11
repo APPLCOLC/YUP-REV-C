@@ -1,7 +1,9 @@
+from levels import template
 import random
-class data:
-    
-    def __init__(self, level=None):
+class data(template.data):
+    def __init__(self, level=1):
+
+        template.data.__init__(self,level)
 
         #LEVEL INFORMATION
         self.worldInfo={
@@ -9,30 +11,12 @@ class data:
             "uitype":'default',
             "bg":'Space'
             }
-        self.level_length=10 #TEMPORARY, NORMALLY 10
-
-        #SIZE values
-        self.char_distance_x=40
-        self.char_distance_y=40
-
-        self.char_min_width=5
-        self.char_min_height=1
-        self.char_max_width=10
-        self.char_max_height=5
-
-
-        #THROWDOWN values
-        self.spawn_time=0
-        self.spawn_amount=0
-        self.maxChar=0
-        self.update_intensities(level)#dynamic value assignment based on character
-
 
         #character
         self.imports = ['nope','fihs','stickman','spike','zapp'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
         self.bullets = ['bananas','strawberry']
         self.drop_health = 5 #how often it drops an extra life
-        self.drop_bullet = 10 #chance out of 100 it drops a bullet per level
+        self.drop_bullet = 20 #chance out of 100 it drops a bullet per level
         self.speed=1
         
 

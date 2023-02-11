@@ -129,7 +129,6 @@ class Char(pygame.sprite.Sprite):
         self.container = None #a tuple, containing the type of item and the name of the item. the second index is usually unused if the item is not a bullet.
 
 
-
     def update(self):
         self.state_update()
         self.collision_update()
@@ -267,10 +266,15 @@ class Item(pygame.sprite.Sprite):
         if not Item.screen_rect.colliderect(self.rect): self.kill()
 
 class BulletItem(Item):
+    #this is the same as item but it provides a bulllet upon being touched.
+    #loaded_bulets needs to be provided by *main*, as shared cannot access them on their own
+    #if it is not manually provided, the program will load a default image
+    loaded_bullets = {} 
     def __init__(self,player,name, image = None, spawn_coord = (255,0)):
         Item.__init__(self,player=player, spawn_coord = spawn_coord)
         self.name = name
-        if image is not None: self.image = image 
+        if self.name in BulletItem.loaded_bullets.keys(): 
+            self.image = pygame.transform.scale(BulletItem.loaded_bullets[self.name].Bullet.image,(30,30))
     def on_touch_player(self):
         self.player.bullet = self.name
         self.kill()

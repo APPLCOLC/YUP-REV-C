@@ -1,11 +1,11 @@
 import random
 class data:
     
-    def __init__(self, level=None):
+    def __init__(self, level=1):
 
         #LEVEL INFORMATION
         self.worldInfo={
-            "songname":'cabbage.mp3',
+            "songname":'meowchill.mp3',
             "uitype":'default',
             "bg":'null'
             }
@@ -29,7 +29,7 @@ class data:
         self.imports = ['nope'] #PUT DUPLICATES IN THERE FOR DIFFERENT RATES OF CHARACTERS!!!
         self.bullets = []
         self.drop_health = 5 #how often it drops an extra life
-        self.drop_bullet = 10 #chance out of 100 it drops a bullet per level
+        self.drop_bullet = 20 #chance out of 100 it drops a bullet per level
         self.speed=1
 
         #manually-generated formations to replace randomly-generated formations 

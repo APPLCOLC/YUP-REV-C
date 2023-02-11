@@ -10,12 +10,7 @@ Most of the information you will need is in the code files itself as comments.
 
 
 TO DO LIST
-----------
--fix song preloading, get rid of it (2/7/22)
---make the music loading pygame.mixer.Music.load()
---if anything has to do with pausing a song and loading it back in, save the timeframe
-
--RESTORE POWER UP IMAGES
+---------
 
 -Preload game over text
 
@@ -24,6 +19,18 @@ TO DO LIST
 --explosions
 --game over
 --enemy death
+
+-get character hats working
+--hat() will be a function in shared.char that spawns a hat on top of enemy sprites
+--this is currently not progammed to be moddable.
+
+-make the levels have a universal class, known as template
+
+-fix song preloading, get rid of it (2/7/23)
+--make the music loading pygame.mixer.Music.load()
+--if anything has to do with pausing a song and loading it back in, save the timeframe
+
+-RESTORE POWER UP IMAGES (2/8/23)
 
 -fix settings being loaded all the time (2/7/23)
 

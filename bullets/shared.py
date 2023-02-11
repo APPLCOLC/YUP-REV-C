@@ -2,12 +2,13 @@ import pygame,random
 # from modules.sounds import *
 #from main import *
 
-def shoot(loaded,bullet_name,coordinates,all_sprites,enemy_sprites,bullet_sprites):
+def shoot(loaded,bullet_name,coordinates,all_sprites,enemy_sprites,bullet_sprites,sounds=None):
     args={
         "center":coordinates,
         "enemy_sprites":enemy_sprites,
         "all_sprites":all_sprites,
-        "bullet_sprites":bullet_sprites
+        "bullet_sprites":bullet_sprites,
+        "sounds":sounds,
     }
     if len(bullet_sprites)<2:
         bullet=loaded[bullet_name].Bullet(args=args)
@@ -26,13 +27,12 @@ class Bullet(pygame.sprite.Sprite):
     pygame.draw.circle(image, "white", (5, 5), 4)
     screen_rect = pygame.Rect(0, 0, 450, 600)
 
-    def __init__(self, sound=None, img=None, args={"center": (0, 0)}):
+    def __init__(self, args={"center": (0, 0)}, sound_play=True):
 
         pygame.sprite.Sprite.__init__(self)
         self.health = 1
 
-        if sound is not None:
-            sound.play()
+        if sound_play:args["sounds"].sounds["shoot.mp3"].play()
 
         self.rect = pygame.mask.from_surface(Bullet.image).get_rect()
         # This tells the bullet to spawn in the x coordinate of arg1 and the y coordinate of arg2.

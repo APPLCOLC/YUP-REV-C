@@ -193,13 +193,40 @@ for directory in os.listdir("./assets/images/bg/"):
     #the frame it uses for searching goes up by 1 every iteration9?
     #when a file is not found, that means the list search is complete and the program continues
     curFrame=1
+
+    #this is what configures the resizing of the images
+    #there is an optional configuration key called "resize" that will resize the item
+    #this is the resize option done so it doesn't need to be re-checked each frame
+    if (loaded_backgrounds[directory][0] == None) or ("resize" not in loaded_backgrounds[directory][0]) or (loaded_backgrounds[directory][0]["resize"] == 3):
+        resize = 3 #defaulting to resize both
+    else:
+        resize = loaded_backgrounds[directory][0]["resize"] #picking resizing option
+
     while True:
         try:
 
             # print(prefix)
             item=pygame.image.load(('./assets/images/bg/' + directory + '/' + prefix[0] + str(curFrame) + prefix[1] + '.png'))
-            item=pygame.transform.scale(item,(450,600)).convert_alpha()
-            loaded_backgrounds[directory][1].append(item) #adds item to main directory
+
+            # print(str(directory),str(resize))
+            if resize == 0 :
+                scale = (item.get_width(),item.get_height())
+            elif resize == 1: #scaling vertically based off what needs to be scaled horizontally to fit the screen
+                multiplier = 450 / item.get_width()
+                scale = ( item.get_width() * multiplier, item.get_height() * multiplier )
+                del multiplier
+            elif resize == 2: #scaling horizontally based off what needs to be scaled vertically to fit the screen
+                multiplier = 600 / item.get_height()
+                scale = ( item.get_width() * multiplier, item.get_height() * multiplier )
+                del multiplier
+            else: #3 or onward resizing to fit screen
+                scale = (450,600)
+            
+
+
+            item=pygame.transform.scale(item,scale).convert_alpha()
+
+            loaded_backgrounds[directory][1].append(item) #adds image to main directory
 
             #updates the current frame
             curFrame+=1
@@ -250,8 +277,8 @@ for item in os.listdir("./bullets/"):
     the_code = "import bullets." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_bullets)
 
-# input("LOADED UI")
-
+# providing the SHARED CHARACTER LIBRARY with the bullet images
+shared.BulletItem.loaded_bullets = loaded_bullets
 
 
 """SOUNDS---"""
@@ -269,11 +296,10 @@ class Sounds:
 
     ###############FUNCTIONS###############-
 
-    def play_song(self,song,time=0.0):
+    def play_song(self,song,pos=0.0):
         pygame.mixer.music.set_volume(settings["OST VOL"][0])
         pygame.mixer.music.load("./assets/ost/"+song)
-        pygame.mixer.music.play(loops=-1)
-        pygame.mixer.music.set_pos(time)
+        pygame.mixer.music.play(loops=-1,start=pos/1000)
 
     @staticmethod
     def stop_song():
@@ -282,7 +308,6 @@ class Sounds:
     def adjust_sounds(self):
         for sound in self.sounds.values():
             sound.set_volume(settings["SOUND VOL"][0])
-        self.apply_offsets()
         # death.set_volume(death.get_volume() / 2)
 
     def adjust_ost(self):
@@ -360,7 +385,7 @@ class Text(pygame.sprite.Sprite):
             self.image = loaded_text[text]
         else:
             #if the image is not loaded
-            print("TEXT NOT PRESENT, ADDING...")
+            # print("TEXT NOT PRESENT, ADDING...")
             loaded_text[text] = pygame.font.Font(font,20).render(str(text),True,fg,bg)
             self.image = loaded_text[text]
 
@@ -388,7 +413,7 @@ class Text(pygame.sprite.Sprite):
             
     def update(self):
         self.counter += 1
-        if (self.counter >= 60 and not self.on_screen()) or ( (self.duration is not -1) and (self.counter >= self.duration) ):
+        if (self.counter >= 60 and not self.on_screen()) or ( (self.duration != -1) and (self.counter >= self.duration) ):
             # print("ded")
             self.kill()
         
@@ -532,48 +557,44 @@ class BG:
     #This is the code that will run on-frame.
     #It does not display the background, just update the current image to *be* displayed.
     def update(self, scroll_values : tuple = None):
-        # print(self.photoName)
-
         window.fill("black")#initial screen fill in case of transparency
 
-        #scroll code
-        self.curFrame += 1
+        #scroll code - advancing frame turnary operator
+        self.curFrame = self.curFrame +1  if self.curFrame+1<len(self.dir) else 0
         if scroll_values is None:
             self.bgY += self.config['scrollVert']
             self.bgX += self.config['scrollHoriz']
         else:
             self.bgY += scroll_values[1]
             self.bgX += scroll_values[0]
-        if self.bgY >= 600 or self.bgY <= -600: self.bgY=0
-        if self.bgX >= 450 or self.bgX <= -450: self.bgX=0
+        if self.bgY >= self.dir[self.curFrame].get_height() or self.bgY <= (self.dir[self.curFrame].get_height()*-1): self.bgY=0
+        if self.bgX >= self.dir[self.curFrame].get_width() or self.bgX <= (self.dir[self.curFrame].get_width()*-1): self.bgX=0
 
-        #RESETTING THE FRAME
-        if self.curFrame>=len(self.dir):self.curFrame=0
-
+        
 
 
     # Duplicating images around current background to make the background look like it is repeating
     def decoys(self):
         if self.bgY != 0:
-            window.blit(self.dir[self.curFrame], (self.bgX, self.bgY - 600))
-            window.blit(self.dir[self.curFrame], (self.bgX, self.bgY + 600))
+            window.blit(self.dir[self.curFrame], (self.bgX, self.bgY - self.dir[self.curFrame].get_height()))
+            window.blit(self.dir[self.curFrame], (self.bgX, self.bgY + self.dir[self.curFrame].get_height()))
 
         if self.bgX != 0:
-            window.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY))
-            window.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY))
+            window.blit(self.dir[self.curFrame], (self.bgX + self.dir[self.curFrame].get_width(), self.bgY))
+            window.blit(self.dir[self.curFrame], (self.bgX - self.dir[self.curFrame].get_width(), self.bgY))
 
         if self.bgY != 0 and self.bgX != 0:
-            window.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY - 600))
-            window.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY + 600))
-            window.blit(self.dir[self.curFrame], (self.bgX + 450, self.bgY + 600))
-            window.blit(self.dir[self.curFrame], (self.bgX - 450, self.bgY - 600))
+            window.blit(self.dir[self.curFrame], (self.bgX + self.dir[self.curFrame].get_width(), self.dir[self.curFrame].get_height() - 600))
+            window.blit(self.dir[self.curFrame], (self.bgX - self.dir[self.curFrame].get_width(), self.dir[self.curFrame].get_height() + 600))
+            window.blit(self.dir[self.curFrame], (self.bgX + self.dir[self.curFrame].get_width(), self.dir[self.curFrame].get_height() + 600))
+            window.blit(self.dir[self.curFrame], (self.bgX - self.dir[self.curFrame].get_width(), self.dir[self.curFrame].get_height() - 600))
 
         return
 
     #Displaying the bg is treated differently due to fps changes in gameplay
     def display_bg(self):
         window.blit(self.dir[self.curFrame],(self.bgX,self.bgY))
-        if self.config is not None: self.decoys()
+        self.decoys()
 
 
     #Destroying the bg will delete all the background values and replace them with something else
@@ -613,12 +634,12 @@ class Formation:
 
         #calculating characters to use
         self.used_char = [available_char[0]]
-        chunk = self.file.level_length / (len(available_char)-1)
+        if len(available_char) >= 2:
+            chunk = self.file.level_length / (len(available_char)-1)
         
-        for _ in range( int(level // chunk) ):
-            if len(self.used_char) < len(available_char):
-                self.used_char.append(available_char[_+1])
-
+            for _ in range( int(level // chunk) ):
+                if len(self.used_char) < len(available_char):
+                    self.used_char.append(available_char[_+1])
 
         self.formation_size = [0,0] #size of the formation
 
@@ -1063,7 +1084,6 @@ def title():
             #Code to end the game if conditions are met.
             if event == pygame.QUIT:
                 run = False
-                exit()
 
 
             #Code that checks for if a key is pressed.
@@ -1081,13 +1101,12 @@ def title():
                     elif index == 2: return "options"
 
                     # If you pick quit, or something else by some chance, the game will quit.
-                    else:sounds.sounds["select.mp3"].play();time.sleep(0.5);run = False;exit()
+                    else:sounds.sounds["select.mp3"].play();time.sleep(0.5);run = False
 
 
                 #Escape press for quitting games
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_k:
                     sounds.sounds["back.mp3"].play()
-                    exit()
 
 
                 #Item selection; changes index
@@ -1358,7 +1377,6 @@ def game_over(level_class : Level = None, score : int = 0):
                 for _ in groups.values():
                     _.empty()
                 state = "results"
-
         
         elif state == "results":
             # print(state_results)
@@ -1408,7 +1426,6 @@ def game_over(level_class : Level = None, score : int = 0):
         for event in pygame.event.get():
             if event == pygame.QUIT:
                 run = False
-                exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     return
@@ -1474,7 +1491,6 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-                exit()
             if event.type == pygame.KEYDOWN:
                 # print(speedups_applied)
                 pass
@@ -1509,17 +1525,17 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
                 groups["universal"].add(text);groups["priority"].add(text)
             #2
             if speedups_applied == 64: 
-                text = Text(pos=(225,0), vertex=( 0 , 100 ),modifier = 3, modifier2 = 1,size = 40,duration = (384-64),
+                text = Text(pos=(225,0), vertex=( 0 , 100 ),modifier = 3, modifier2 = 1,size = 40,duration = (380-64),
                     pattern="static sine", speed=1, text="WARPING TO", )
                 groups["universal"].add(text);groups["priority"].add(text)
             #3
-            if speedups_applied == 128: 
-                text = Text(pos=(225,0), vertex=( 0 , 150 ),modifier = 5, modifier2 = 2, size = 40,duration = (384-128),
+            if speedups_applied == 112: 
+                text = Text(pos=(225,0), vertex=( 0 , 150 ),modifier = 5, modifier2 = 2, size = 40,duration = (376-112),
                     pattern="static sine", speed=1, text=str(level_class.worldOrder[next_world_number]))
                 groups["universal"].add(text);groups["priority"].add(text)
             #4
-            if speedups_applied == 224: 
-                text = Text(pos=(225,0), vertex=( 0 , 200 ),modifier = 3, modifier2 = 0.75, size = 40,duration = (384-224),
+            if speedups_applied == 208: 
+                text = Text(pos=(225,0), vertex=( 0 , 200 ),modifier = 3, modifier2 = 0.75, size = 40,duration = (372-208),
                     pattern="static sine", speed=1, text="BONUSES:")
                 groups["universal"].add(text);groups["priority"].add(text)
 
@@ -1597,7 +1613,7 @@ def play(bullet_shared=loaded_bullets["shared"]):
 
 
     graphical=True #this is for debug purposes, where if you turn it off, the display turns off but the framerate rises heavily
-
+    time_pos = 0 #positioning for songs
 
     def exit_state():
         for _ in groups.values():
@@ -1654,12 +1670,11 @@ def play(bullet_shared=loaded_bullets["shared"]):
             game_over(level_class=level_class, score=player.score)
             exit_state()
             return "title"
-
-        
+      
         #finishing the level
         if level_class.level_in_world > level_class.world_file.level_length:
             level_complete(level_class,player)
-
+            time_pos = 0
 
         # inputs
         for event in pygame.event.get():
@@ -1667,7 +1682,6 @@ def play(bullet_shared=loaded_bullets["shared"]):
             # QUIT GAME CODE
             if event.type == pygame.QUIT:
                 run = False
-                exit()
 
 
             # PAUSE CODE
@@ -1679,9 +1693,9 @@ def play(bullet_shared=loaded_bullets["shared"]):
                     player.reset_movement()
 
                     #fetching the time from the song being played, as the music will stop
-                    time_pos = pygame.mixer.music.get_pos()
+                    time_pos += pygame.mixer.music.get_pos()
                     result =  pause(img=level_class.bg.dir[0])
-                    sounds.play_song(str(level_class.world_file.worldInfo['songname']),time=time_pos)
+                    sounds.play_song(str(level_class.world_file.worldInfo['songname']),pos=time_pos)
 
                     # If an error occurs, or any exit code is brought up, it spits you back at the title
                     if type(result) != float:
@@ -1733,8 +1747,9 @@ while run:
             next_state = options()
             continue_song = True #tells title state not to restart song
             continue
-
-        else:exit()
+        
+        else:
+            run = False
 
     elif next_state is None:
         run = False
@@ -1742,5 +1757,7 @@ while run:
     else:
         run = False
 
-with open("./assets/settings.txt", "w+") as data:
+with open("./assets/settings.txt", "w") as data:
     data.write(str(settings))
+
+exit()
