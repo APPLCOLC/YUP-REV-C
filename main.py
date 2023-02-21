@@ -120,6 +120,7 @@ window.blit(ui.load_bg, (0, 0))
 pygame.display.update()
 
 """CHARACTERS"""
+from characters import shared
 loaded_characters = {}
 
 for item in os.listdir("./characters"):
@@ -134,7 +135,13 @@ for item in os.listdir("./characters"):
     the_code = "import characters." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_characters)
 
-from characters import shared
+    #importing BASE-GAME CHARACTERS
+    for k,v in shared.loaded_characters.items():
+        loaded_characters[k]=v
+    
+    # print(loaded_characters)
+
+
 
 """BACKGROUNDS---"""
 loaded_backgrounds = {}
@@ -673,8 +680,10 @@ class Formation:
         if (self.player.bullet == "default") and (self.level%self.file.drop_health == 0):
             self.items_to_spawn[random.choice(self.spawn_list_indexes)] = ("health",None)
         """puts a bullet in a character if random chance"""
-        if random.randint(0,100) < self.file.drop_bullet:
-            self.items_to_spawn[random.choice(self.spawn_list_indexes)] = ("bullet",random.choice(self.file.bullets))
+        if random.randint(0,100) < self.file.drop_bullet and len(self.file.bullets) > 0:
+            self.items_to_spawn[
+                random.choice(self.spawn_list_indexes)] = (
+                    "bullet",random.choice(self.file.bullets))
             # print("CONDITION MET")
 
 

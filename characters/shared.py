@@ -1,4 +1,5 @@
-import pygame,random
+import pygame,random,math
+from bullets.shared import *
 
 #IMAGES
 class SHARECHAR():
@@ -65,6 +66,7 @@ class dieBoom(pygame.sprite.Sprite):
         self.rect.center=self.coordCENTER
 
 
+"""BULLETS"""
 class Bullet (pygame.sprite.Sprite):
 
     image = pygame.Surface((10, 10), pygame.SRCALPHA)
@@ -90,7 +92,8 @@ class Bullet (pygame.sprite.Sprite):
     def on_screen(self) -> bool:
         return Bullet.screen_rect.colliderect(self.rect)
 
-class Char(pygame.sprite.Sprite):
+"""CHARACTER"""
+class CharTemplate(pygame.sprite.Sprite):
     #default image if unchanged
     image = pygame.Surface((30, 30), pygame.SRCALPHA)
     pygame.draw.circle(image, "red", (15, 15), 15)
@@ -115,7 +118,7 @@ class Char(pygame.sprite.Sprite):
         #IMAGE CODE
         self.animation_frame=0
         self.animation_frame_counter=0
-        self.image = Char.image
+        self.image = CharTemplate.image
         self.rect = self.image.get_rect()
     
         #SHOOT CODE    
@@ -236,6 +239,7 @@ class Char(pygame.sprite.Sprite):
         return shoot_times
          
 
+"""ITEMS"""
 class Item(pygame.sprite.Sprite):
     screen_rect = pygame.Rect(0, 0, 450, 600)
     image = pygame.Surface((30, 30), pygame.SRCALPHA)
@@ -286,3 +290,489 @@ class HealthItem(Item):
     def on_touch_player(self):
         self.player.health += 1
         self.kill()
+
+"""BASE GAME CHARACTERS"""
+class nope():
+    class Char(CharTemplate):
+        idle = []
+        for i in range(4):
+            idle.append(
+                pygame.transform.scale(pygame.image.load("./assets/images/characters/NOPE/NOPE-"+str(i+1)+".png"),(35,35)).convert_alpha()
+            )
+        idle.pop(3)
+        def __init__(self,args:dict):
+            CharTemplate.__init__(self,args)
+
+            #spritesheet
+            self.image = nope.Char.idle[self.animation_frame]
+            self.rect = self.image.get_rect() 
+
+            #most of nope's arguments are default, so no value rewrites
+
+            #entrance values
+            self.shoot_times = CharTemplate.generate_shoot_times(level=self.level,starttime=20,endtime=20, bullet_cap = 2)
+            self.entrance_direction = random.choice(['l','r']) #this is the entrance they are COMING FROM, NOT the direction they are MOVING
+            self.vertex = ( 0,0 )
+            if self.entrance_direction == 'r':
+                self.rect.center = (450,300) #location
+                self.vertex = (450,400) #vertex for algebra
+            elif self.entrance_direction == 'l':
+                self.rect.center = (0,300) #location
+                self.vertex = (25,400) #vertex for algebra
+
+        #ANIMATED SPRITESHEETS
+        def animation_update(self):
+            self.animation_frame_counter += 1
+
+            if self.animation_frame_counter >= 6: #updates frame if enough time has passed
+                self.animation_frame_counter = 0
+                self.animation_frame+=1
+                self.image = nope.Char.idle[self.animation_frame] #sets current image
+
+            if self.animation_frame>=len(nope.Char.idle)-1:
+                self.animation_frame=0 #resets frame if out-of-index
+        
+
+        #ALGEBRAIC-CENTERED ENTRANCE
+        def state_enter(self):
+            #shoot code
+            if len(self.shoot_times) > 0:
+                self.frames_in_state += 1
+                if self.frames_in_state == self.shoot_times[0]:
+                    self.shoot()
+                    self.shoot_times.pop(0)
+
+            #movement parabola code
+            if self.entrance_direction == 'l':
+                #moving to the right, coming from left
+                self.rect.x += 2
+                self.rect.y = (-(1 / 50) * ((self.rect.x + self.vertex[0]) ** 2) + self.vertex[1])
+
+
+            elif self.entrance_direction == 'r':
+                # moving to the right, coming from left
+                self.rect.x -= 2
+                self.rect.y = (-(1 / 50) * ((self.rect.x - self.vertex[0]) ** 2) + self.vertex[1])
+
+            if abs(225-self.rect.x) <= 100 or abs(100 - self.rect.y) <= 50:
+                self.state = "idle_search"
+                self.frames_in_state = 0
+        
+        def state_attack(self):
+            #startup code / adding shoot times
+            if self.frames_in_state == 0:
+                self.shoot_times = CharTemplate.generate_shoot_times(level=self.level,starttime=20,endtime=30,bullet_cap = 2)
+
+            self.frames_in_state += 1
+
+            # shooting based on timers
+            if len(self.shoot_times) > 0:
+                if self.frames_in_state == self.shoot_times[0]:
+                    self.shoot()
+                    self.shoot_times.pop(0)
+
+            #exiting state
+            self.rect.y+=5
+            if self.rect.top>=600:
+                self.rect.center=(self.idlePos[0],self.idlePos[1]-100)
+                self.frames_in_state = 0
+                self.state="return" #USUALLY 'return' BUT ENTRANCE FITS HERE
+
+        def state_return(self):
+            self.rect.center=[self.idlePos[0],self.rect.center[1]]
+            self.rect.y+=5
+            if abs(self.rect.center[1]-self.idlePos[1])<5:
+                self.state="idle_search"
+
+
+
+class fihs():
+    class Char(CharTemplate):
+
+        #loading images
+        idle,chomp = [],[]
+        for i in range(3):
+            idle.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/FIHS/FIHS-"+str(i+1)+".png"),(40,40)).convert_alpha())
+        for i in range(4):
+            chomp.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/FIHS/FIHS-"+str(i+4)+".png"),(40,40)).convert_alpha())
+
+        def __init__(self,args :dict):
+            
+            CharTemplate.__init__(self,args)
+            
+            self.scorevalue = 200
+
+            #PIRAHNA-SPECIFIC CODE
+            self.player = args["player"] #THIS is to get positions for when the sprite is in attack state
+            self.direction = "right"
+            self.x_momentum = 0
+
+            #IMAGE CODE
+            self.image = fihs.Char.chomp[self.animation_frame]
+            self.rect = self.image.get_rect()
+
+            self.rect.center = (0,0)
+            #the entrance state will move in a cubic function, although x won't move 
+
+
+        def animation_update(self):
+            #FRAME UPDATING
+            self.animation_frame_counter += 1
+
+            if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+                self.animation_frame_counter = 0
+                self.animation_frame += 1
+
+                if self.state=="idle" or self.state=="enter":
+                    #RESETTING FRAME
+                    if self.animation_frame >= len(fihs.Char.idle) - 1: self.animation_frame = 0
+                    #SETTING IMAGE
+                    self.image = fihs.Char.idle[self.animation_frame]
+
+                elif self.state == "attack" or self.state == "return":
+                    #RESETTING FRAME
+                    if self.animation_frame >= len(fihs.Char.chomp) - 1: self.animation_frame = 0
+                    #SETTING IMAGE
+                    self.image = fihs.Char.chomp[self.animation_frame]
+                    #FLIPPING IMAGE BASED ON DIRECTION
+                    if self.direction=="left": self.image=pygame.transform.flip(self.image,True,False)
+
+        def state_enter(self):
+            #jump down code
+            self.frames_in_state += 1
+
+            self.rect.center = (
+                self.idlePos[0],
+                (-0.125*(self.frames_in_state-100) )**3 + 590
+            )
+            # print(self.rect.center)
+
+            if (30)>(self.idlePos[1]-self.rect.center[1])>(-30):
+                self.rect.center = self.idlePos
+                self.frames_in_state = 0
+                self.state = "idle"
+
+        def state_attack(self):
+            self.rect.center = (
+                self.rect.center[0],
+                (-1/9) * ( (self.frames_in_state - 60) **2) + 475
+            )
+
+            #changing direction
+            if (self.player.rect.x-self.rect.x)>10 and abs(self.x_momentum)<2:
+                self.x_momentum+=0.1
+                self.direction="right"
+            elif (self.player.rect.x-self.rect.x)<-10 and abs(self.x_momentum)<2:
+                self.x_momentum-=0.1
+                self.direction = "left"
+            #moving
+            self.rect.x+=self.x_momentum
+
+            #CHANGING STATE TO RETURN STATE
+            if self.frames_in_state >= 120: #ends early to show the character turning around and coming back
+                self.x_momentum = 0
+                self.frames_in_state = 0
+                self.state="idle_search" #return state does nothing now, as it is a parabola function
+            
+            #updating frame
+            self.frames_in_state += 1
+
+
+
+class SPIKEBULLETS(pygame.sprite.Sprite):
+    bullet_images = [
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-3.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-4.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-1.png"),(20,20)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKEBULLET-2.png"),(20,20)).convert_alpha(), 
+    ]
+    def __init__(self, direction, coord):
+        pygame.sprite.Sprite.__init__(self)
+        self.direction = direction
+        self.image = SPIKEBULLETS.bullet_images[direction]
+
+        self.rect = self.image.get_rect()
+        self.rect.center = coord
+    def update(self):
+        if self.direction == 0: self.rect.x -= 7.5
+        if self.direction == 1: self.rect.x += 7.5
+        if self.direction == 2: self.rect.y -= 7.5
+        if self.direction == 3: self.rect.y += 7.5
+
+        if self.rect.right <= 0 or self.rect.left >= 450 or self.rect.top <= 0 or self.rect.bottom >= 600: self.kill()
+
+
+class spike():
+    class Char(CharTemplate):
+        #IMAGE LOADING
+        idle = []
+        release = []
+        for i in range(3):
+            idle.append(
+                pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKE-"+str(i+1)+".png"),(50,50)).convert_alpha(),
+            )
+        for i in range(3):
+            release.append(
+                pygame.transform.scale(pygame.image.load("./assets/images/characters/SPIKE/SPIKE-"+str(i+4)+".png"),(50,50)).convert_alpha(),
+            )
+        def __init__(self,args :dict):
+            
+            CharTemplate.__init__(self,args)
+            self.scorevalue = 400 #Score given to player
+
+            #IMAGE CODE
+            self.image = spike.Char.idle[self.animation_frame]
+            self.rect = self.image.get_rect()
+            
+            #SPIKE-SPECIFIC CODE
+            self.shot=False
+            self.initial_attack=False
+            self.y_momentum=0
+            self.frames_since_attack=0
+
+            # ENTRANCE CODE
+            self.entrance_direction = random.choice([1, -1])
+            self.rect.x = -10 if self.entrance_direction == 1 else 450
+
+        def animation_update(self):
+            #FRAME UPDATING
+            self.animation_frame_counter += 1
+            if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+                self.animation_frame_counter = 0
+                self.animation_frame += 1
+
+                #IDLE IMAGE UPDATE
+                if not self.shot:
+                    #RESETTING FRAME
+                    if self.animation_frame >= len(spike.Char.idle) - 1: self.animation_frame = 0
+                    #SETTING IMAGE
+                    self.image = spike.Char.idle[self.animation_frame]
+                #ATTACKING IMAGE UPDATE
+                elif self.shot:
+                    #RESETTING FRAME
+                    if self.animation_frame >= len(spike.Char.release) - 1: self.animation_frame = 0
+                    #SETTING IMAGE
+                    self.image = spike.Char.release[self.animation_frame]
+
+        def state_enter(self):
+            #TEMPORARY
+            CharTemplate.state_enter(self)
+
+        def state_attack(self):
+            #start code, to launch spike
+            if not self.initial_attack:
+                self.y_momentum=10
+                self.initial_attack=True
+                self.frames_since_attack=0
+            # print(str(self.frames_since_attack),"|",str(self.y_momentum),"|",str(abs((self.rect.center[1]-(self.formationPos[1]+self.offset[1])))))
+            #movement update
+            self.y_momentum-=0.1
+            self.rect.y+=self.y_momentum
+            self.frames_since_attack+=1
+            self.rect.center=(self.idlePos[0],self.rect.center[1])
+            #shoot code
+            if not self.shot and (abs(self.rect.center[0]-self.player.rect.center[0])<=5 or abs(self.rect.center[1]-self.player.rect.center[1])<=5):
+                self.shot=True
+                self.shoot()
+            #return code
+            if abs((self.rect.center[1]-(self.idlePos[1])))<=10 and self.frames_since_attack>=20: 
+                self.shot=False
+                self.initial_attack=False
+                self.y_momentum=0
+                self.state='idle'   
+            
+        def shoot(self):
+            for i in range(4):
+                bullet=SPIKEBULLETS(i,self.rect.center)
+                self.groups["universal"].add(bullet)
+                self.groups["enemy"].add(bullet)
+
+
+
+class stickman():
+    class Char(CharTemplate):
+        idle,prep,freefall=[],[],[]
+        for i in range(5):
+            idle.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/STICKMAN/STICKMAN-"+str(i+1)+".png"),(40,40)).convert_alpha())
+        for i in range(7):
+            prep.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/STICKMAN/STICKMAN-"+str(i+6)+".png"),(40,40)).convert_alpha())
+        for i in range(3):
+            freefall.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/STICKMAN/STICKMAN-"+str(i+13)+".png"),(40,40)).convert_alpha())
+        
+
+        def __init__(self,args :dict):
+            #INIT
+            CharTemplate.__init__(self,args)
+            
+            self.scorevalue= 50
+            # STICKMAN-SPECIFIC CODE
+            self.locked_in = False
+            self.y_momentum = self.x_momentum = 0
+            #IMAGE
+            self.image = stickman.Char.freefall[self.animation_frame]
+            self.rect = self.image.get_rect()
+
+        def animation_update(self):
+            # FRAME UPDATING
+            self.animation_frame_counter += 1
+            if self.animation_frame_counter >= 6:  # updates frame if enough time has passed
+                self.animation_frame_counter = 0
+                self.animation_frame += 1
+            #SETTING IMAGE 
+                if self.state == "idle":# IDLE IMAGE UPDATE
+                    if self.animation_frame >= len(stickman.Char.idle) - 1: self.animation_frame = 0 # RESETTING FRAME
+                    self.image = stickman.Char.idle[self.animation_frame]# SETTING IMAGE
+                elif self.state == "attack" or self.state == "enter":# ATTACKING IMAGE UPDATE
+                    if self.animation_frame >= len(stickman.Char.freefall) - 1: self.animation_frame = 0 # RESETTING FRAME
+                    self.image = stickman.Char.freefall[self.animation_frame]# SETTING IMAGE
+                elif self.state == "prep":
+                    if self.animation_frame >= len(stickman.Char.prep) - 1: self.animation_frame = 0 #this SHOULD NOT OCCUR since at this point he would have jumped
+                    self.image = stickman.Char.prep[self.animation_frame]
+
+
+        def state_update(self):
+            if self.state == "enter": self.state_enter()
+            if self.state == "idle": self.state_idle()
+            if self.state == "attack": self.state_attack()
+            if self.state == "return": self.state_return()
+            if self.state == "prep": self.state_prep()
+
+
+        def state_enter(self):
+            # zooming up or down
+            self.rect.center = (self.idlePos[0], self.rect.center[1])  # matching x position
+            if self.idlePos[1] > self.rect.center[1]:
+                self.rect.y += 10
+            elif self.idlePos[1] < self.rect.center[1]:
+                self.rect.y -= 10
+            if (30) > (self.idlePos[1] - self.rect.center[1]) > (-30):
+                self.rect.center = self.idlePos
+                self.state = "idle"
+
+
+        def state_prep(self):
+            self.rect.center = self.idlePos
+            #Creating variables to make the jump fine
+            if self.animation_frame >= len(stickman.Char.prep) - 2:
+                #WAHOO JUMP
+                self.animation_frame=0
+                self.locked_in=True
+                self.state="attack"
+                #VISUAL EXPLOSION
+                self.groups["universal"].add(dieBoom(self.rect.center,(50,50)))
+            self.y_momentum=-5
+
+
+        def state_attack(self):
+            #SENDING BACK IF MANUALLY_ATTACKED
+            if not self.locked_in:
+                self.animation_frame=0
+                self.state="prep"
+                return
+
+            # MOVING DOWN CODE
+            self.y_momentum+=0.5
+            self.rect.y+=self.y_momentum
+
+            #RETURN CODE
+            if self.rect.top>=600:
+                self.locked_in=False
+                self.rect.bottom=0
+                self.state="enter"
+
+
+
+class zapp():
+    class Char(CharTemplate):
+        idle = []
+        for i in range(4):
+            idle.append(pygame.transform.scale(pygame.image.load("./assets/images/characters/ZAPP/ZAPP-"+str(i+1)+".png"),(50,50)).convert_alpha(),)
+
+        def __init__(self,args :dict):
+
+            CharTemplate.__init__(self,args)
+        
+            self.scorevalue= 250 #Score given to player
+
+            self.rect.y = -100 #entrance state starting position
+
+            #ZAPP-SPECIFIC CODE
+            self.frames=0
+            self.zapping=False
+            self.player = args ["player"]
+
+            #ENTRANCE CODE
+            self.entrance_direction = random.choice([1,-1])
+            if self.entrance_direction == 1: self.rect.x = -10
+            else: self.rect.x = 450
+
+
+        def animation_update(self):
+
+            self.animation_frame_counter += 1
+
+            if self.animation_frame_counter >= 6: #updates frame if enough time has passed
+                self.animation_frame_counter = 0
+                self.animation_frame+=1
+
+            if self.state == "enter":
+                self.image=pygame.transform.scale(self.image,(50,100)) #stretching image
+            
+            if self.zapping:
+                self.image=pygame.transform.scale(self.image,(100,50))
+                self.zapping=False
+                # self.rect.x-=50
+
+            else:
+                if self.animation_frame >= len(zapp.Char.idle) - 1: self.animation_frame = 0  # resets frame if out-of-index
+                self.image = zapp.Char.idle[self.animation_frame]  # sets current image
+
+        def state_enter(self):
+            self.rect.x += self.entrance_direction
+            self.rect.center = (
+                self.rect.center[0],
+                (math.sin((self.rect.center[0]+200)/25)*200 + 300)
+            )
+            if abs(self.rect.center[0]-225) <= 10:
+                self.state = "idle_search"
+
+        def state_attack(self):
+            self.rect.y+=5
+            if self.rect.top>=600:
+                self.rect.center=(self.offset[0],self.offset[1]-100)
+                self.state="enter" #USUALLY 'return' BUT ENTRANCE FITS HERE
+            
+            #ZAPPING ZAPP AROUND
+            self.frames+=1
+            if self.frames>=15:
+                self.frames=0
+                self.rect.center=(random.randint(self.rect.center[0]-100,self.rect.center[0]+100),self.rect.center[1])
+                self.zapping=True
+            else:
+                self.zapping=False
+
+            if self.rect.left<0:
+                self.rect.left=0
+            if self.rect.right>450:
+                self.rect.right=450
+
+        def state_return(self):
+            self.rect.center=[(self.formationPos[0] + self.offset[0]),self.rect.center[1]]
+            self.rect.y+=5
+            if abs(self.rect.center[1]-(self.formationPos[1] + self.offset[1]))<5:
+                self.state="idle"
+
+
+
+
+"""---ADDED CHARACTERS AT THE END---"""
+loaded_characters = { "nope":nope,"fihs":fihs,"spike":spike,"stickman":stickman,"zapp":zapp}
+      
+
+
+
+
+
+
+
+        
