@@ -29,10 +29,6 @@ continue_song = False #universal value for title screen, ignore
 # input("AFTER INITIALIZING PYGAME")
 
 
-
-
-
-
 """LOADING#################################################################"""
 """SETTINGS"""
 with open("assets/settings.txt", "r") as data: settings = eval(data.read())
@@ -134,13 +130,12 @@ for item in os.listdir("./characters"):
     #importing characters
     the_code = "import characters." + str(item) + " as " + str(item)
     exec(the_code, globals(), loaded_characters)
-
-    #importing BASE-GAME CHARACTERS
-    for k,v in shared.loaded_characters.items():
-        loaded_characters[k]=v
     
     # print(loaded_characters)
 
+#importing BASE-GAME CHARACTERS
+for k,v in shared.loaded_characters.items():
+    loaded_characters[k]=v
 
 
 """BACKGROUNDS---"""
@@ -1029,6 +1024,9 @@ class Level:
 
 """STATES###############################################################"""
 
+
+
+
 """TITLE ASSETS--------------------"""
 def title():
     # try:
@@ -1126,6 +1124,9 @@ def title():
                 if event.key == pygame.K_s:
                     if index < 3: index +=1
                     sounds.sounds["scroll.mp3"].play()
+
+
+
 
 
 """OPTIONS ASSETS--------------------"""
@@ -1240,6 +1241,9 @@ def options():
                 redraw_window()
 
 
+
+
+
 """PAUSE ASSETS--------------------"""
 def pause(img=None): #it takes in the UI images as an argument to lower RAM usage and prevent leakage :)
     """-----PLEASE NOTE !-----
@@ -1314,6 +1318,8 @@ def pause(img=None): #it takes in the UI images as an argument to lower RAM usag
 
     sounds.stop_song()
     return time_passed
+
+
 
 
 
@@ -1457,6 +1463,8 @@ def game_over(level_class : Level = None, score : int = 0):
 
 
 
+
+
 """LEVEL COMPLETE"""
 def level_complete(level_class : Level = None, player : loaded_characters["player"].Player = None):
 
@@ -1590,6 +1598,9 @@ def level_complete(level_class : Level = None, player : loaded_characters["playe
         groups["universal"].draw(window)
         groups["priority"].draw(window) #priority graphical
         pygame.display.update()
+
+
+
 
 
 """GAMEPLAY ASSETS--------------------"""
@@ -1727,7 +1738,6 @@ def play(bullet_shared=loaded_bullets["shared"]):
                     level_class.refresh_world_data()
                 if event.key == pygame.K_3:
                     level_complete(level_class,player)
-
 
 
 

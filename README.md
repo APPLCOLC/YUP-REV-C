@@ -12,19 +12,11 @@ Most of the information you will need is in the code files itself as comments.
 TO DO LIST
 ---------
 
--Preload game over text
-
--MORE SOUNDS
---character shooting
---explosions
---game over
---enemy death
-
 -get character hats working
 --hat() will be a function in shared.char that spawns a hat on top of enemy sprites
 --this is currently not progammed to be moddable.
 
--make the levels have a universal class, known as template
+-make the levels have a universal class, known as template (2/?/23)
 
 -fix song preloading, get rid of it (2/7/23)
 --make the music loading pygame.mixer.Music.load()
