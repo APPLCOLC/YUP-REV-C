@@ -4,25 +4,16 @@
 **SO I CAN TRY OUT MY GAY ASS ABILITIES**
 **WITH PROGRAMMING**
 
-**IMPORTING**
+Universal settings dictionary, read from a file, first thing loaded
 
+Preloading
+-text values
+-images
+-sound LOCATIONS
 
-**SETTING UP DISPLAY**
-
-
-**SETTING UP EVERYTHING ELSE**
-
-
-**PRELOADING**
-
-- Settings universal value
-
-- UI images
-
-- Character files
--- Base Game Character Files
-
-- Background images
--- ONLY ONE - no longer animated
-
+Menus
+-a spawned box that displays the preloaded text
+-if the text is not preloaded it will load the text for future use
+-UI can *overlay* meu
+-This should be its own separate project
 
