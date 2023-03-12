@@ -1,0 +1,1 @@
+{'NAME': 'zapp', 'PATH': 'C:\\Users\\user\\Documents\\Yup_D\\assets\\images\\characters\\ZAPP\\', 'SHEET_SIZE': (432, 100), 'TILE_SIZE': (108, 100), 'ROWS/COLUMNS': (1, 5)}

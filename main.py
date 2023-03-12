@@ -35,8 +35,6 @@ with open("assets/settings.txt", "r") as data:
     settings = eval(data.read())
 
 #UI IMAGES---#
-
-
 class UiImages:
     # BEGIN AND END
     beginImage = pygame.image.load(
@@ -407,6 +405,9 @@ sounds.apply_offsets()  # this creates an object of the class. this is what ever
 
 for sound in os.listdir("./assets/sounds/"):
     sounds.sounds[str(sound)] = pygame.mixer.Sound("./assets/sounds/" + str(sound))
+
+
+
 #FONTS---#
 loaded_text = {}
 # 0-9

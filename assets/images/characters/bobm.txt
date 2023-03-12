@@ -1,0 +1,1 @@
+{'NAME': 'bobm', 'PATH': 'C:\\Users\\user\\Documents\\Yup_D\\assets\\images\\characters\\BOBM\\', 'SHEET_SIZE': (1000, 1000), 'TILE_SIZE': (200, 200), 'ROWS/COLUMNS': (5, 5)}

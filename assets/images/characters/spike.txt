@@ -1,0 +1,1 @@
+{'NAME': 'spike', 'PATH': 'C:\\Users\\user\\Documents\\Yup_D\\assets\\images\\characters\\SPIKE\\', 'SHEET_SIZE': (780, 318), 'TILE_SIZE': (156, 159), 'ROWS/COLUMNS': (2, 5)}
